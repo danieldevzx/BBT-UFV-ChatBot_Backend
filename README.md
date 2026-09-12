@@ -1,259 +1,135 @@
-# BBT-UFV ChatBot Backend
+# BBT-UFV ChatBot
 
-Sistema de chatbot para WhatsApp da **Biblioteca Universitária (BBT-UFV)**.  
-Dividido em dois módulos independentes: **ChatBot-BBT** (prova de conceito CLI) e **api/** (REST API em Flask).
+Chatbot para a Biblioteca Central da UFV. Arquitetura com núcleo de resposta desacoplado do canal de comunicação.
 
----
-
-## Repositório
+## Estrutura
 
 ```
-BBT-UFV-ChatBot_Backend/
-├── README.md
-├── LICENSE
-├── ChatBot-BBT/              ← Prova de conceito do bot (CLI, intocado)
-│   ├── app/
-│   │   ├── agent.py          #   OpenAI (gpt-5) com base de conhecimento
-│   │   ├── dtree_test.py     #   Árvore de decisão (regras offline)
-│   │   ├── knowledge_base.py #   Carrega data/biblioteca.txt
-│   │   ├── main.py           #   CLI do bot com OpenAI
-│   │   └── respostas.py      #   Respostas fixas da árvore de decisão
-│   ├── data/biblioteca.txt   # Base de conhecimento texto
-│   └── .gitignore
-│
-└── api/                      ← REST API (Flask, Feature-Based)
-    ├── app/
-    │   ├── __init__.py       # create_app, registra blueprints
-    │   ├── config.py         # Configurações via .env
-    │   ├── extensions.py     # SQLAlchemy instance
-    │   ├── core/             # Infraestrutura compartilhada
-    │   │   ├── health/       # GET /api/health
-    │   │   ├── models/       # ORM (SQLAlchemy)
-    │   │   │   ├── user/         # User, UserData
-    │   │   │   └── conversation/ # Conversation, Message
-    │   │   ├── dtos/         # Dataclasses (um arquivo por DTO)
-    │   │   │   ├── register_request_dto.py
-    │   │   │   ├── login_request_dto.py
-    │   │   │   ├── auth_response_dto.py
-    │   │   │   ├── user_response_dto.py
-    │   │   │   ├── error_response_dto.py
-    │   │   │   ├── result_dto.py
-    │   │   │   ├── send_request_dto.py
-    │   │   │   ├── message_response_dto.py
-    │   │   │   ├── conversation_response_dto.py
-    │   │   │   └── webhook_response_dto.py
-    │   │   └── utils/
-    │   │       └── crypto.py # Criptografia Fernet
-    │   └── features/         # Regras de negócio (Feature-Based)
-    │       ├── dashboard/    # Módulo do bibliotecário
-    │       │   ├── auth/     #   register, login, me
-    │       │   ├── archive/  #   (placeholder) gestão de arquivos
-    │       │   └── users/    #   (placeholder) gestão de usuários
-    │       └── bot/          # Módulo de comunicação WhatsApp
-    │           ├── whatsapp.py      # Cliente Meta Cloud API
-    │           ├── responder.py     # Árvore de decisão + respostas fixas
-    │           ├── webhook/         # GET/POST /webhook
-    │           ├── messages/        # POST /send
-    │           └── conversations/   # GET /, GET /<id>
-    ├── run.py                # Entry point
-    ├── .env / .env.example
-    ├── docker-compose.yml    # PostgreSQL
-    └── requirements.txt
+api/
+├── app/
+│   ├── core/           # infra compartilhada (database, models, dtos, utils)
+│   ├── bot/            # núcleo puro do bot (gerar_resposta)
+│   ├── whatsapp/       # canal WhatsApp (webhook + API client)
+│   └── dashboard/      # painel das bibliotecárias (auth + stubs)
+├── migrations/         # migrações do banco (Flask-Migrate)
+├── .env                # configuração local
+├── docker-compose.yml  # PostgreSQL
+├── requirements.txt
+└── run.py              # ponto de entrada
 ```
 
----
+## Rotas
 
-## ChatBot-BBT (CLI)
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| GET | `/api/health` | Health check |
+| GET | `/api/whatsapp/webhook/` | Verificação do webhook (Meta) |
+| POST | `/api/whatsapp/webhook/` | Recebe mensagens do WhatsApp |
+| POST | `/api/dashboard/auth/register` | Registrar bibliotecária |
+| POST | `/api/dashboard/auth/login` | Login |
+| GET | `/api/dashboard/auth/me` | Dados do usuário autenticado |
+| GET | `/api/dashboard/archive/` | Listar arquivos (TODO) |
+| GET | `/api/dashboard/users/` | Listar usuários (TODO) |
 
-Prova de conceito com dois modos de operação — **nada foi alterado**:
+## Dependências
+
+| Pacote | Versão | Função |
+|--------|--------|--------|
+| **Flask** | 3.1.1 | Framework web |
+| **Flask-SQLAlchemy** | 3.1.1 | ORM — models e banco |
+| **Flask-Migrate** | 4.1.0 | Migrações (Alembic) |
+| **python-dotenv** | 1.1.0 | Carrega `.env` |
+| **bcrypt** | 4.3.0 | Hash de senhas |
+| **PyJWT** | 2.13.0 | Tokens JWT |
+| **psycopg2-binary** | 2.9.10 | Driver PostgreSQL |
+| **cryptography** | 44.0.0 | Criptografia (Fernet) para dados sensíveis |
+| **requests** | 2.32.3 | Chamadas HTTP para API do WhatsApp |
+
+## Setup rápido
 
 ```bash
-cd ChatBot-BBT
+# 1. Banco
+docker compose up -d
 
-# Modo offline — árvore de decisão por palavra-chave
-python app/dtree_test.py
+# 2. Variáveis de ambiente
+cp .env.example .env
+# Edite .env com suas credenciais do WhatsApp
 
-# Modo com IA — OpenAI (gpt-5) + base de conhecimento
-python app/main.py
+# 3. Instalar dependências
+pip install -r requirements.txt
+
+# 4. Rodar migrações
+flask db upgrade
+
+# 5. Iniciar
+flask run --debug
 ```
 
----
+## Migrações (Flask-Migrate)
 
-## API (REST)
+O banco é versionado com Alembic via Flask-Migrate. As migrações ficam em `api/migrations/versions/`.
 
-### Endpoints
-
-| Método | Rota | Módulo | Descrição |
-|---|---|---|---|
-| GET | `/api/health` | `core/health` | `{"status": "ok"}` |
-| POST | `/api/dashboard/auth/register` | `dashboard/auth` | Criar conta (`wa_id`, `password`, `name`) |
-| POST | `/api/dashboard/auth/login` | `dashboard/auth` | Autenticar, retorna JWT |
-| GET | `/api/dashboard/auth/me` | `dashboard/auth` | Dados do usuário autenticado |
-| GET | `/api/dashboard/archive/` | `dashboard/archive` | Placeholder |
-| GET | `/api/dashboard/users/` | `dashboard/users` | Placeholder |
-| GET | `/api/bot/webhook/` | `bot/webhook` | Verificação Meta Cloud API |
-| POST | `/api/bot/webhook/` | `bot/webhook` | Receber mensagem + responder automaticamente |
-| POST | `/api/bot/send` | `bot/messages` | Enviar mensagem via WhatsApp (autenticado) |
-| GET | `/api/bot/conversations/` | `bot/conversations` | Listar conversas (autenticado) |
-| GET | `/api/bot/conversations/\<id\>` | `bot/conversations` | Histórico de mensagens (autenticado) |
-
----
-
-## Modelos (ORM)
-
-### User
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | `VARCHAR(36)` PK | UUID v7 |
-| `wa_id` | `VARCHAR(20)` UNIQUE | ID do WhatsApp |
-| `name` | `VARCHAR(200)` | Nome |
-| `password_hash` | `VARCHAR(256)` | Hash bcrypt |
-| `created_at` | `DATETIME` | Timestamp |
-| `updated_at` | `DATETIME` | Timestamp |
-| `deleted_at` | `DATETIME` | Soft delete |
-
-### UserData
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | `VARCHAR(36)` PK | UUID v7 |
-| `user_id` | `VARCHAR(36)` FK → users | Relação 1:1 |
-| `email` | `TEXT` (encrypted) | Email criptografado (Fernet) |
-| `phone` | `TEXT` (encrypted) | Telefone criptografado (Fernet) |
-| `bio` | `TEXT` (encrypted) | Bio criptografada (Fernet) |
-| `created_at` / `updated_at` / `deleted_at` | Timestamps | |
-
-### Conversation
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | `VARCHAR(36)` PK | UUID v7 |
-| `wa_id` | `VARCHAR(20)` | Usuário do WhatsApp |
-| `status` | `VARCHAR(20)` | `active` (bot ou human) |
-| `created_at` / `updated_at` / `deleted_at` | Timestamps | |
-
-### Message
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | `VARCHAR(36)` PK | UUID v7 |
-| `conversation_id` | `VARCHAR(36)` FK → conversations | |
-| `role` | `VARCHAR(10)` | `user`, `bot`, `staff` |
-| `content` | `TEXT` | Conteúdo da mensagem |
-| `created_at` / `deleted_at` | Timestamps | |
-
----
-
-## Segurança
-
-### Soft delete
-Todas as entidades têm `deleted_at` (DateTime, nullable).  
-As queries nos services filtram com `.filter_by(deleted_at=None)`, garantindo que dados deletados logicamente não sejam expostos.
-
-### Autenticação
-- **bcrypt** — `password_hash` armazenado com `bcrypt.hashpw` + salt automático
-- **JWT (HS256)** — tokens com 24h de expiração, assinados com `JWT_SECRET`
-- Bearer token exigido em todas as rotas de listagem/envio
-
-### Criptografia de dados pessoais
-`email`, `phone`, `bio` do `UserData` são criptografados com **Fernet (AES-256-CBC + HMAC-SHA256)** via `cryptography`.  
-A chave `ENCRYPTION_KEY` é configurada no `.env` — gere com:
+| Comando | Descrição |
+|---------|-----------|
+| `flask db upgrade` | Aplica todas as pendentes |
+| `flask db downgrade` | Desfaz a última migração |
+| `flask db migrate -m "descricao"` | Gera nova migração após alterar models |
+| `flask db history` | Histórico de migrações |
+| `flask db current` | Mostra a migração atual do banco |
 
 ```bash
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+# Após modificar um model, gere e aplique:
+flask db migrate -m "descricao da alteracao"
+flask db upgrade
 ```
 
-O `TypeDecorator` customizado (`EncryptedText`) cifra/decifra automaticamente na camada ORM — o service lê e escreve texto plano, o banco armazena cifrado.
+## Webhook
 
----
+No painel da Meta, configure o webhook para:
 
-## Setup
+```
+https://seu-dominio/api/whatsapp/webhook/
+```
+
+Token de verificação: `bbt_verify` (ou o que estiver em `WHATSAPP_VERIFY_TOKEN`).
+
+### Teste local com ngrok
+
+A Meta exige HTTPS e um URL público — o ngrok cria um túnel para seu servidor local:
 
 ```bash
-# Dependências
-pip install -r api/requirements.txt
+# 1. Instale o ngrok: https://ngrok.com/download
 
-# PostgreSQL
-docker compose -f api/docker-compose.yml up -d
+# 2. Inicie o servidor Flask
+flask run --debug
 
-# Config
-cp api/.env.example api/.env
-# Edite api/.env com suas credenciais e gere a ENCRYPTION_KEY
+# 3. Em outro terminal, exponha a porta 5000
+ngrok http 5000
 
-# Executar
-cd api && python run.py   # → http://localhost:5000
+# 4. Copie a URL gerada (ex: https://abc123.ngrok.io) e cole no painel da Meta
+#    em Callback URL: https://abc123.ngrok.io/api/whatsapp/webhook/
 ```
 
----
+> ⚠️ **Apenas para desenvolvimento local.** Em produção, use o domínio real do servidor com HTTPS configurado (ex: `https://meudominio.com/api/whatsapp/webhook/`). Não precisa de ngrok.
+>
+> O ngrok gera uma nova URL a cada execução no plano gratuito. Sempre que reiniciar, atualize o painel da Meta.
 
-## Variáveis de Ambiente
+### Formato esperado do número
 
-| Variável | Descrição | Padrão |
-|---|---|---|
-| `DB_HOST` | Host PostgreSQL | `localhost` |
-| `DB_PORT` | Porta PostgreSQL | `5432` |
-| `DB_NAME` | Nome do banco | `bbt_bot` |
-| `DB_USER` | Usuário do banco | `bbt` |
-| `DB_PASSWORD` | Senha do banco | `bbt_secret` |
-| `JWT_SECRET` | Chave JWT (mín. 32 chars em prod) | `dev-secret-key...` |
-| `SECRET_KEY` | Chave Flask | `dev` |
-| `WHATSAPP_TOKEN` | Token Meta Cloud API | — |
-| `WHATSAPP_PHONE_NUMBER_ID` | ID do número de telefone | — |
-| `WHATSAPP_VERIFY_TOKEN` | Token de verificação webhook | `bbt_verify` |
-| `WHATSAPP_APP_SECRET` | App Secret Meta | — |
-| `ENCRYPTION_KEY` | Chave Fernet (criptografia dados pessoais) | — |
+O `wa_id` enviado pela Meta vem em dígitos puros com código do país (ex: `553199456489`). A API rejeita números com `+`, espaços ou traços — a normalização é feita automaticamente por `normalize_wa_id()` em `core/utils/wa_utils.py`.
 
----
+### Lista de permissão (Meta)
 
-## Arquitetura
+No plano de teste do WhatsApp Cloud API, você precisa adicionar os números de telefone dos destinatários no dashboard do Meta Business → WhatsApp → Configuração → **Números de telefone permitidos**. Use o formato exato de dígitos que aparece no `from` do payload do webhook.
 
-### Separação core / features
+## Regras de resposta
 
-```
-app/core/       → Infraestrutura: models, dtos, health, crypto
-app/features/   → Regras de negócio: dashboard, bot
-```
+A função `gerar_resposta(texto)` em `app/bot/responder.py` usa identificação por palavra-chave:
 
-As features nunca importam `core/models` e `core/dtos` — nunca dependem de implementação concreta de infraestrutura.
-
-### Padrão de cada submódulo
-
-```
-features/<dominio>/<submodulo>/
-├── __init__.py   → Blueprint
-├── routes.py     → Controller: valida input, chama service, retorna resposta
-└── service.py    → Regras de negócio + acesso a banco
-```
-
-**Routes nunca têm lógica de negócio.**  
-**Services nunca lidam com request/response HTTP.**
-
-### Fluxo de dados
-
-```
-Requisição → Blueprint → Routes (parse) → Service (regras) → DTO (resposta) → JSON
-```
-
----
-
-## Testes rápidos
-
-```bash
-cd api
-
-# Registrar
-curl -X POST http://localhost:5000/api/dashboard/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"wa_id":"5511999999999","password":"123456","name":"Admin"}'
-
-# Login
-curl -X POST http://localhost:5000/api/dashboard/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"wa_id":"5511999999999","password":"123456"}'
-
-# Saúde
-curl http://localhost:5000/api/health
-```
-
----
-
-## Licença
-
-Este projeto é parte de um trabalho acadêmico da **Universidade Federal de Viçosa (UFV)**.
+| Palavra-chave | Intenção |
+|---|---|
+| `multa` | Informações sobre multas |
+| `renovar`, `renovação` | Renovação de livros |
+| `acervo`, `livro`, `pergamum` | Pesquisa no acervo |
+| `horário`, `horario`, `abre`, `fecha` | Horários e contatos |
+| (outros) | Resposta padrão "desconhecido" |

@@ -1,6 +1,10 @@
+import logging
+
 from flask import Flask
 from .config import Config
-from .extensions import db, migrate
+from .core.database.extensions import db, migrate
+
+logging.basicConfig(level=logging.INFO)
 
 
 def create_app():
@@ -11,12 +15,12 @@ def create_app():
     migrate.init_app(app, db)
 
     from .core import models
-    from .core.health import health_bp
-    from .features.dashboard import dashboard_bp
-    from .features.bot import bot_bp
+    from .core.utils.health import health_bp
+    from .dashboard import dashboard_bp
+    from .whatsapp import whatsapp_bp
 
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(dashboard_bp, url_prefix="/api/dashboard")
-    app.register_blueprint(bot_bp, url_prefix="/api/bot")
+    app.register_blueprint(whatsapp_bp, url_prefix="/api/whatsapp")
 
     return app

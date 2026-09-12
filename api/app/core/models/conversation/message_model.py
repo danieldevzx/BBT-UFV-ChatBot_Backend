@@ -1,6 +1,6 @@
 from uuid import uuid7
 from datetime import datetime, timezone
-from app.extensions import db
+from app.core.database.extensions import db
 
 
 class Message(db.Model):
