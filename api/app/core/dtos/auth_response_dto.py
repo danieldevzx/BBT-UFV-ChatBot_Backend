@@ -4,7 +4,8 @@ from typing import Optional
 
 @dataclass
 class AuthResponseDTO:
-    wa_id: str
+    email: str
     name: Optional[str] = None
+    perfil: Optional[str] = None
     token: Optional[str] = None
     message: Optional[str] = None

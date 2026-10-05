@@ -7,9 +7,9 @@ from .core.database.extensions import db, migrate
 logging.basicConfig(level=logging.INFO)
 
 
-def create_app():
+def create_app(config=None):
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config.from_object(config or Config)
 
     db.init_app(app)
     migrate.init_app(app, db)

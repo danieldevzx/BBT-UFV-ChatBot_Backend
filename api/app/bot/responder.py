@@ -1,32 +1,47 @@
-_RESPOSTAS = {
-    "multa": "Para informações sobre multas, consulte as regras da biblioteca e verifique o procedimento de pagamento.",
-    "renovacao": "Para renovar um livro, é necessário realizar o procedimento de renovação pelo sistema da biblioteca.",
-    "acervo": "Para pesquisar um livro no acervo, utilize o catálogo Pergamum da biblioteca.",
-    "horarios": "Você pode consultar os horários de funcionamento e os canais de contato da biblioteca na documentação oficial.",
-    "desconhecido": (
-        "Não consegui identificar sua dúvida.\n\n"
-        "Posso ajudar com:\n"
-        "- multas\n"
-        "- renovação de livros\n"
-        "- pesquisa no acervo\n"
-        "- horários e contatos\n\n"
-        "Se sua dúvida for sobre outro assunto, posso encaminhar você para um atendente."
-    ),
-}
+from app.bot import fluxo
+
+FEEDBACK_PREFIX = "feedback:"
 
 
-def _identificar_intencao(texto: str) -> str:
-    q = texto.lower()
-    if "multa" in q:
-        return "multa"
-    if "renovar" in q or "renovação" in q:
-        return "renovacao"
-    if "acervo" in q or "livro" in q or "pergamum" in q:
-        return "acervo"
-    if "horário" in q or "horario" in q or "abre" in q or "fecha" in q:
-        return "horarios"
-    return "desconhecido"
+def acao_inicial() -> dict:
+    return {
+        "tipo": "MENU",
+        "body": fluxo.obter_config("boas_vindas", "Escolha uma opção:"),
+        "opcoes": fluxo.listar_filhos(None),
+    }
 
 
-def gerar_resposta(texto: str) -> str:
-    return _RESPOSTAS[_identificar_intencao(texto)]
+def acao_no(no_id) -> dict | None:
+    no = fluxo.obter_no(no_id)
+    if not no:
+        return None
+    if no.tipo == "MENU":
+        return {"tipo": "MENU", "body": no.titulo, "opcoes": fluxo.listar_filhos(no.id)}
+    if no.tipo == "RESPOSTA":
+        return {"tipo": "RESPOSTA", "body": no.conteudo.texto, "no": no}
+    return {"tipo": "ATENDENTE", "body": fluxo.obter_config("atendente_msg", "Aguarde, você será atendido."), "no": no}
+
+
+def resposta_feedback(no_id: int):
+    return [
+        (f"{FEEDBACK_PREFIX}1:{no_id}", fluxo.obter_config("feedback_sim", "Ajudou")),
+        (f"{FEEDBACK_PREFIX}0:{no_id}", fluxo.obter_config("feedback_nao", "Não ajudou")),
+    ]
+
+
+def menu_botao() -> str:
+    return fluxo.obter_config("menu_botao", "Ver opções")
+
+
+def feedback_pergunta() -> str:
+    return fluxo.obter_config("feedback_pergunta", "Essa resposta te ajudou?")
+
+
+def feedback_agradecimento() -> str:
+    return fluxo.obter_config("feedback_obrigado", "Obrigado pelo seu feedback!")
+
+
+def fallback() -> str:
+    return fluxo.obter_config(
+        "fallback", "Não entendi. Vou te mostrar o menu novamente."
+    )

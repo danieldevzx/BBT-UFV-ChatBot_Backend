@@ -3,5 +3,5 @@ from dataclasses import dataclass
 
 @dataclass
 class LoginRequestDTO:
-    wa_id: str
+    email: str
     password: str

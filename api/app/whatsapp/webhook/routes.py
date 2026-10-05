@@ -19,7 +19,7 @@ def verify():
     challenge = request.args.get("hub.challenge")
 
     expected = current_app.config.get("WHATSAPP_VERIFY_TOKEN", "")
-    logger.info("Webhook verify: mode=%s, token=%s, expected=%s", mode, token, expected)
+    logger.debug("Webhook verify: mode=%s", mode)
     if mode == "subscribe" and token == expected and challenge:
         return challenge, 200
 
@@ -39,7 +39,7 @@ def handle():
     if not data:
         return "Bad Request", HTTPStatus.BAD_REQUEST
 
-    logger.warning("Webhook payload received: %s", data)
+    logger.debug("Webhook payload received")
     wh.process(data)
     return "OK", 200
 

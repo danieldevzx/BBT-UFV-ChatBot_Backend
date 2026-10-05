@@ -1,82 +1,86 @@
-from datetime import datetime, timezone, timedelta
-
-import bcrypt
-import jwt
-from flask import current_app
-
+from app.core.auth.guards import current_usuario
+from app.core.auth.security import check_password, encode_token, hash_password
 from app.core.database.extensions import db
-from app.core.models import User
-from app.core.dtos import RegisterRequestDTO, LoginRequestDTO, AuthResponseDTO, UserResponseDTO, ResultDTO
+from app.core.dtos import (
+    AuthResponseDTO,
+    LoginRequestDTO,
+    RegisterRequestDTO,
+    ResultDTO,
+    UserResponseDTO,
+)
+from app.core.models import Perfil, Usuario
 
 
-def _hash_password(password: str) -> str:
-    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+def serialize(usuario: Usuario) -> dict:
+    return UserResponseDTO(
+        id=usuario.id,
+        email=usuario.email,
+        name=usuario.nome,
+        perfil=usuario.perfil.nome,
+        ativo=usuario.ativo,
+        created_at=usuario.created_at.isoformat(),
+    ).__dict__
 
 
-def _check_password(password: str, hashed: str) -> bool:
-    return bcrypt.checkpw(password.encode(), hashed.encode())
-
-
-def _encode_token(wa_id: str) -> str:
-    payload = {
-        "sub": wa_id,
-        "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(hours=24),
-    }
-    return jwt.encode(payload, current_app.config["JWT_SECRET"], algorithm="HS256")
-
-
-def _decode_token(token: str) -> dict | None:
-    try:
-        return jwt.decode(token, current_app.config["JWT_SECRET"], algorithms=["HS256"])
-    except jwt.PyJWTError:
-        return None
-
-
-def _active_user_by_wa_id(wa_id: str) -> User | None:
-    return User.query.filter_by(wa_id=wa_id, deleted_at=None).first()
+def _perfil_by_nome(nome: str) -> Perfil | None:
+    return Perfil.query.filter_by(nome=nome).first()
 
 
 def register(req: RegisterRequestDTO) -> ResultDTO:
-    if not req.wa_id or not req.password:
-        return ResultDTO.bad_request("wa_id and password are required")
+    if not req.email or not req.password:
+        return ResultDTO.bad_request("email and password are required")
 
-    if _active_user_by_wa_id(req.wa_id):
-        return ResultDTO.conflict("wa_id already registered")
+    total = Usuario.query.count()
+    if total > 0:
+        atual = current_usuario()
+        if not atual or atual.perfil.nome != "ADMIN":
+            return ResultDTO.forbidden("Only ADMIN can create users")
 
-    name = req.name or req.wa_id
-    user = User(wa_id=req.wa_id, name=name, password_hash=_hash_password(req.password))
-    db.session.add(user)
+    perfil_nome = req.perfil or ("ADMIN" if total == 0 else "ATENDENTE")
+    perfil = _perfil_by_nome(perfil_nome)
+    if not perfil:
+        return ResultDTO.bad_request(f"Unknown perfil: {perfil_nome}")
+
+    if Usuario.query.filter_by(email=req.email).first():
+        return ResultDTO.conflict("email already registered")
+
+    usuario = Usuario(
+        nome=req.name or req.email,
+        email=req.email,
+        password_hash=hash_password(req.password),
+        perfil_id=perfil.id,
+    )
+    db.session.add(usuario)
     db.session.commit()
 
-    return ResultDTO.created(AuthResponseDTO(message="User created", wa_id=req.wa_id, name=name).__dict__)
+    return ResultDTO.created(
+        AuthResponseDTO(
+            email=usuario.email,
+            name=usuario.nome,
+            perfil=perfil.nome,
+            message="User created",
+        ).__dict__
+    )
 
 
 def login(req: LoginRequestDTO) -> ResultDTO:
-    if not req.wa_id or not req.password:
-        return ResultDTO.bad_request("wa_id and password are required")
+    if not req.email or not req.password:
+        return ResultDTO.bad_request("email and password are required")
 
-    user = _active_user_by_wa_id(req.wa_id)
-    if not user or not _check_password(req.password, user.password_hash):
+    usuario = Usuario.query.filter_by(email=req.email, ativo=True).first()
+    if not usuario or not check_password(req.password, usuario.password_hash):
         return ResultDTO.unauthorized("Invalid credentials")
 
-    token = _encode_token(req.wa_id)
-    return ResultDTO.ok(AuthResponseDTO(token=token, wa_id=req.wa_id, name=user.name).__dict__)
-
-
-def me(token: str) -> ResultDTO:
-    payload = _decode_token(token)
-    if not payload:
-        return ResultDTO.unauthorized("Not authenticated")
-
-    user = _active_user_by_wa_id(payload["sub"])
-    if not user:
-        return ResultDTO.unauthorized("Not authenticated")
-
+    token = encode_token(usuario.id)
     return ResultDTO.ok(
-        UserResponseDTO(
-            wa_id=user.wa_id,
-            name=user.name,
-            created_at=user.created_at.isoformat(),
+        AuthResponseDTO(
+            email=usuario.email,
+            name=usuario.nome,
+            perfil=usuario.perfil.nome,
+            token=token,
         ).__dict__
     )
+
+
+def me(usuario: Usuario) -> ResultDTO:
+    return ResultDTO.ok(serialize(usuario))

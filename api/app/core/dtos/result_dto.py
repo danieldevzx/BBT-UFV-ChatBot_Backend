@@ -27,3 +27,11 @@ class ResultDTO:
     @classmethod
     def conflict(cls, error: str) -> "ResultDTO":
         return cls(data={"error": error}, status_code=HTTPStatus.CONFLICT)
+
+    @classmethod
+    def forbidden(cls, error: str) -> "ResultDTO":
+        return cls(data={"error": error}, status_code=HTTPStatus.FORBIDDEN)
+
+    @classmethod
+    def not_found(cls, error: str) -> "ResultDTO":
+        return cls(data={"error": error}, status_code=HTTPStatus.NOT_FOUND)

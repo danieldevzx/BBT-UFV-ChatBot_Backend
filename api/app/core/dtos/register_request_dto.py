@@ -4,6 +4,7 @@ from typing import Optional
 
 @dataclass
 class RegisterRequestDTO:
-    wa_id: str
+    email: str
     password: str
     name: Optional[str] = None
+    perfil: Optional[str] = None
