@@ -1,0 +1,17 @@
+services:
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bbt-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bbt_bot
+      POSTGRES_USER: bbt
+      POSTGRES_PASSWORD: bbt_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
