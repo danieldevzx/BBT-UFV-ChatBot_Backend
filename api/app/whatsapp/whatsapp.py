@@ -32,7 +32,25 @@ def _post(payload: dict) -> bool:
         resp.raise_for_status()
         return True
     except requests.RequestException as e:
-        logger.error("WhatsApp send error: %s", e)
+        response = e.response
+        error = {}
+        if response is not None:
+            try:
+                data = response.json()
+                if isinstance(data, dict) and isinstance(data.get("error"), dict):
+                    error = data["error"]
+            except ValueError:
+                pass
+        # Não registrar headers, token, destinatário ou corpo da mensagem.
+        message = str(error.get("message", "Sem descrição retornada pela Meta"))
+        message = message.replace(token, "[token oculto]")
+        logger.error(
+            "WhatsApp send error: HTTP=%s code=%s subcode=%s message=%s",
+            response.status_code if response is not None else "sem resposta",
+            error.get("code", "-"),
+            error.get("error_subcode", "-"),
+            message,
+        )
         return False
 
 
