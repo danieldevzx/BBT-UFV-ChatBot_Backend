@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestor de Fluxos · Chatbot UFV Campus Florestal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --vinho:#800000;
+  --vinho-escuro:#650505;
+  --vinho-tabela:#4d0505;
+  --vinho-botao:#7a1c1c;
+  --fundo:#F5F5F5;
+  --card:#FFFFFF;
+  --linha-alt:#ececea;
+  --borda:#d9d6d2;
+  --texto:#231818;
+  --texto-suave:#6b6262;
+  --verde:#2fa84f;
+  --laranja:#f5a01a;
+  --cinza:#9a9a9a;
+  --erro:#b3261e;
+  --aviso-fundo:#fff4dc;
+  --aviso-borda:#f0c46a;
+  --f-titulo:'Roboto Condensed','Arial Narrow',Arial,sans-serif;
+  --f-corpo:'Roboto','Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--fundo);color:var(--texto);font-family:var(--f-corpo);font-size:16px;line-height:1.45;
+}
+:focus-visible{outline:3px solid #e8a33d;outline-offset:2px}
+
+/* ---------- Cabeçalho ---------- */
+.topo{
+  background:var(--vinho-escuro);color:#fff;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:0 clamp(16px,3vw,32px);min-height:76px;
+}
+.topo nav{display:flex;gap:8px;flex-wrap:wrap}
+.topo nav button{
+  font:700 clamp(18px,2.2vw,26px)/1 var(--f-titulo);color:#f3d9d4;background:none;border:0;
+  padding:10px 12px;border-radius:8px;cursor:pointer;
+}
+.topo nav button:hover{background:rgba(255,255,255,.1);color:#fff}
+body.deslogado .topo nav{visibility:hidden}
+.marca{display:flex;align-items:flex-end;gap:10px;color:#fff;text-decoration:none}
+
+/* ---------- Layout ---------- */
+main{max-width:1240px;margin:0 auto;padding:clamp(14px,2.5vw,28px) clamp(14px,3vw,32px) 48px}
+.grade{display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:28px;align-items:start}
+.coluna-lateral{display:flex;flex-direction:column;gap:14px;position:sticky;top:16px}
+@media (max-width:920px){
+  .grade{grid-template-columns:1fr}
+  .coluna-lateral{position:static}
+}
+
+.voltar{
+  display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 4px;margin-bottom:10px;
+  font:500 17px var(--f-corpo);color:var(--vinho-escuro);cursor:pointer;
+}
+.voltar:hover{text-decoration:underline}
+
+.painel{background:var(--card);border:1px solid var(--borda);border-radius:14px;padding:18px 22px 22px}
+.painel-topo{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+h1{margin:0;font:700 clamp(28px,4vw,42px)/1.1 var(--f-titulo);color:var(--vinho)}
+.busca{position:relative;flex:0 1 330px;min-width:220px}
+.busca svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--texto-suave)}
+.busca input{
+  width:100%;height:46px;padding:0 14px 0 42px;font:400 17px var(--f-corpo);color:var(--texto);
+  background:#fff;border:1px solid #b9b4b0;border-radius:10px;
+}
+.busca input::placeholder{color:#8d8582}
+
+/* Caixa com o texto do menu (o que o usuário recebe) */
+.texto-menu{
+  display:flex;gap:14px;align-items:flex-start;justify-content:space-between;
+  background:#faf6f5;border:1px solid var(--borda);border-left:5px solid var(--vinho);border-radius:10px;
+  padding:12px 14px;margin-bottom:14px;
+}
+.texto-menu .rotulo{font:700 15px var(--f-titulo);color:var(--vinho);text-transform:uppercase;letter-spacing:.4px}
+.texto-menu .conteudo{white-space:pre-line;font-size:17px}
+.aviso{
+  background:var(--aviso-fundo);border:1px solid var(--aviso-borda);border-radius:10px;
+  padding:10px 14px;margin-bottom:14px;font-size:16px;
+}
+
+/* ---------- Tabelas ---------- */
+.rolagem{overflow-x:auto;border-radius:10px;border:1px solid var(--borda)}
+table{width:100%;border-collapse:collapse;background:#fff;min-width:640px}
+thead th{
+  background:var(--vinho-tabela);color:#fff;text-align:left;font:700 18px var(--f-titulo);
+  padding:13px 16px;border-left:1px solid rgba(255,255,255,.18);
+}
+thead th:first-child{border-left:0}
+tbody td{padding:14px 16px;vertical-align:middle;border-top:1px solid var(--borda);border-left:1px solid var(--borda);font-size:17px}
+tbody td:first-child{border-left:0}
+tbody tr:nth-child(odd){background:var(--linha-alt)}
+tbody tr:nth-child(even){background:#fff}
+tbody tr.clicavel{cursor:pointer}
+tbody tr.clicavel:hover{background:#f4e6e3}
+tbody tr.desativado td:not(.acoes){color:var(--texto-suave)}
+tbody tr.destaque{animation:pisca 1.6s ease-out}
+@keyframes pisca{0%,30%{background:#f7d9a8}100%{}}
+td.num{width:60px;font-weight:500}
+td.acoes,th.acoes{width:110px;text-align:center}
+.acoes .icones{display:inline-flex;gap:6px}
+.icone{
+  width:38px;height:38px;display:inline-grid;place-items:center;background:none;border:0;border-radius:8px;
+  color:#2a1c1c;cursor:pointer;
+}
+.icone.apagar{color:var(--vinho)}
+.icone.reativar{color:var(--verde)}
+.icone:hover{background:rgba(128,0,0,.1)}
+.texto-msg{white-space:pre-line}
+.vazio{padding:34px 16px;text-align:center;color:var(--texto-suave)}
+.nota{display:block;font-size:14px;color:var(--texto-suave);margin-top:4px}
+.alerta{display:block;font-size:14px;color:#9a5a00;margin-top:4px}
+
+a.tag{color:var(--vinho);font-weight:500;text-decoration:underline;text-underline-offset:3px}
+a.tag:hover{background:rgba(128,0,0,.08)}
+
+.estado{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.estado::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--cinza)}
+.estado.ativo::before{background:var(--verde)}
+.estado.oculto::before{background:var(--laranja)}
+
+/* ---------- Botões ---------- */
+.btn{
+  font:500 18px var(--f-corpo);color:#fff;background:var(--vinho-botao);border:0;border-radius:999px;
+  padding:12px 22px;min-height:48px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  box-shadow:0 2px 0 rgba(0,0,0,.18);
+}
+.btn:hover{background:var(--vinho)}
+.btn:active{transform:translateY(1px);box-shadow:none}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.sec{background:#fff;color:var(--vinho);border:1.5px solid var(--vinho);box-shadow:none}
+.btn.sec:hover{background:#f7eceb}
+.btn.perigo{background:var(--erro)}
+.btn.largo{width:100%}
+.btn.peq{min-height:38px;font-size:15px;padding:6px 14px}
+.rodape-tabela{display:flex;justify-content:center;margin-top:18px}
+body.leitura .so-admin{display:none!important}
+
+/* ---------- Painel lateral ---------- */
+.dica{background:var(--card);border:1px solid var(--borda);border-radius:14px;overflow:hidden}
+.dica h2{margin:0;padding:10px 18px;background:var(--vinho);color:#fff;font:700 21px var(--f-titulo);border-radius:0 0 22px 0}
+.dica p{margin:0;padding:14px 18px 0;font-size:17px;line-height:1.4}
+.dica p:last-child{padding-bottom:18px}
+.balao{
+  position:relative;background:#fff;border:2px solid #2a1c1c;border-radius:22px;padding:12px 16px;
+  font:400 17px/1.3 var(--f-corpo);text-align:center;
+}
+.balao::after{
+  content:"";position:absolute;bottom:-14px;right:52px;width:22px;height:22px;background:#fff;
+  border-right:2px solid #2a1c1c;border-bottom:2px solid #2a1c1c;transform:rotate(45deg) skew(10deg,10deg);
+}
+.mascote{display:flex;justify-content:flex-end}
+.mascote img,.mascote svg{width:170px;height:auto}
+body.sem-mascote .mascote,body.sem-mascote .balao{display:none}
+
+/* ---------- Login ---------- */
+.login{max-width:440px;margin:clamp(20px,6vh,70px) auto 0}
+.login .painel{display:flex;flex-direction:column;gap:16px;padding:26px}
+.login h1{font-size:34px}
+.login p{margin:0;color:var(--texto-suave)}
+.link{background:none;border:0;padding:0;color:var(--vinho);font:500 16px var(--f-corpo);text-decoration:underline;cursor:pointer;align-self:flex-start}
+
+/* ---------- Diálogos ---------- */
+dialog{
+  border:0;border-radius:16px;padding:0;width:min(560px,calc(100vw - 28px));max-height:calc(100vh - 28px);
+  color:var(--texto);background:#fff;box-shadow:0 20px 60px rgba(40,0,0,.35);
+}
+dialog::backdrop{background:rgba(30,0,0,.45)}
+dialog form{display:flex;flex-direction:column;max-height:calc(100vh - 28px)}
+.dlg-topo{background:var(--vinho-escuro);color:#fff;padding:14px 22px}
+.dlg-topo h3{margin:0;font:700 24px var(--f-titulo)}
+.dlg-corpo{padding:20px 22px;overflow:auto;display:flex;flex-direction:column;gap:16px}
+.dlg-rodape{display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 20px;border-top:1px solid var(--borda)}
+label{display:flex;flex-direction:column;gap:6px;font-weight:500;font-size:16px}
+label small{font-weight:400;color:var(--texto-suave)}
+label.check{flex-direction:row;align-items:center;gap:12px;font-weight:400}
+label.check input{width:22px;height:22px;accent-color:var(--vinho)}
+input[type=text],input[type=email],input[type=password],input[type=number],select,textarea{
+  font:400 17px var(--f-corpo);color:var(--texto);padding:10px 12px;border:1px solid #b9b4b0;border-radius:10px;background:#fff;width:100%;
+}
+input[type=number]{width:120px}
+textarea{min-height:140px;resize:vertical}
+.contador{font-weight:400;font-size:14px;color:var(--texto-suave);text-align:right}
+.contador.alerta-cont{color:#9a5a00}
+.erro-campo{color:var(--erro);font-size:15px;margin:0}
+
+.toast{
+  position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+  background:#2a1010;color:#fff;padding:12px 20px;border-radius:999px;font-size:16px;transition:.25s;z-index:50;
+  max-width:calc(100vw - 32px);text-align:center;
+}
+.toast.on{opacity:1;transform:translateX(-50%)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="deslogado">
+
+<header class="topo">
+  <nav aria-label="Principal">
+    <button type="button" id="nav-editar">Editar fluxo</button>
+    <button type="button" id="nav-ajustes">Ajustes</button>
+    <button type="button" id="nav-sair">Sair</button>
+  </nav>
+  <a class="marca" href="#/" aria-label="UFV Campus Florestal - início">
+    <img src="logo.png" alt="UFV Campus Florestal" style="height: 50px; width: auto;">
+  </a>
+</header>
+
+<main id="app"></main>
+
+<dialog id="dlg"></dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* =====================================================================
+   INTEGRAÇÃO COM O BACKEND (danieldevzx/BBT-UFV-ChatBot_Backend, branch feat/whatsapp-api)
+
+   Endereço da API. Se esta página for servida pelo próprio Flask (porta 5000),
+   usa o caminho relativo; caso contrário aponta para http://localhost:5000.
+   Pode ser alterado em "Ajustes" (fica salvo neste navegador).
+
+   Rotas usadas (todas exigem  Authorization: Bearer <token>, exceto login/register):
+     POST  /auth/login                 {email, password}       -> {token, name, perfil, email}
+     POST  /auth/register              {email, password, name} (só sem usuários ou por ADMIN)
+     GET   /fluxo/                     -> [NoFluxo]   {id, parent_id, titulo, tipo, conteudo_id, ordem, ativo}
+     POST  /fluxo/                     {titulo, tipo, parent_id, conteudo_id, ordem}
+     PATCH /fluxo/<id>                 {titulo, tipo, parent_id, conteudo_id, ordem, ativo}
+     DELETE /fluxo/<id>                (desativa, não apaga)
+     GET/POST /conteudos/, PATCH/DELETE /conteudos/<id>   texto das respostas
+     GET/POST /categorias/             categoria obrigatória de cada conteúdo
+     GET/PUT  /config/boas_vindas      {valor}  texto do menu principal
+
+   Como a interface mapeia a árvore do bot:
+     "Fluxo"  = nó do tipo MENU (mais o "Menu Principal", que é a raiz: parent_id = null)
+     "Opção"  = nó filho de um fluxo: RESPOSTA (envia um texto), MENU (abre outro fluxo)
+                ou ATENDENTE (abre atendimento humano)
+   ===================================================================== */
+const API_PADRAO = (location.protocol.startsWith('http') && location.port === '5000')
+  ? '/api/dashboard' : 'http://localhost:5000/api/dashboard';
+const lerLocal = (k, d=null) => { try{ return localStorage.getItem(k) ?? d; }catch(e){ return d; } };
+const gravarLocal = (k, v) => { try{ v===null ? localStorage.removeItem(k) : localStorage.setItem(k, v); }catch(e){} };
+let API_URL = lerLocal('apiUrl') || API_PADRAO;
+
+/* Limites do WhatsApp aplicados pelo backend (app/whatsapp/whatsapp.py) */
+const MAX_TITULO = 24;   // coluna titulo de no_fluxo e título de linha de lista
+const MAX_BOTAO = 20;    // até 3 opções o bot envia botões, que cortam em 20 caracteres
+const MAX_BOTOES = 3;
+const MAX_LINHAS = 10;   // a lista mostra no máximo 10 opções
+
+/* ---------- Sessão ---------- */
+let sessao = null;
+try{ sessao = JSON.parse(lerLocal('bbtSessao')); }catch(e){ sessao = null; }
+const ehAdmin = () => sessao?.perfil === 'ADMIN';
+
+/* ---------- Chamadas HTTP ---------- */
+const ERROS = {
+  'Invalid credentials':'E-mail ou senha incorretos.',
+  'email and password are required':'Informe e-mail e senha.',
+  'Only ADMIN can create users':'Já existe um administrador. Peça a ele para criar o seu usuário.',
+  'email already registered':'Este e-mail já está cadastrado.',
+  'Forbidden':'O seu perfil não tem permissão para esta ação.',
+  'Not authenticated':'Sessão expirada. Entre novamente.',
+  'titulo must be at most 24 characters':'O título pode ter no máximo 24 caracteres.',
+  'titulo and tipo are required':'Preencha o título.',
+  'Unknown parent_id':'O fluxo de origem não existe mais.',
+  'parent_id cannot reference itself':'Um fluxo não pode ser opção dele mesmo.',
+  'Unknown categoria':'Categoria não encontrada.',
+  'Unknown conteudo_id':'O texto desta resposta não foi encontrado.',
+  'NoFluxo not found':'Este item não existe mais. Recarregue a página.',
+  'Invalid JSON body':'Dados inválidos.',
+};
+class ErroApi extends Error{ constructor(msg, status){ super(msg); this.status = status; } }
+
+async function req(method, caminho, corpo){
+  const headers = {'Content-Type':'application/json'};
+  if(sessao?.token) headers.Authorization = 'Bearer '+sessao.token;
+  let r;
+  try{
+    r = await fetch(API_URL+caminho, {method, headers, body: corpo===undefined ? undefined : JSON.stringify(corpo)});
+  }catch(e){
+    throw new ErroApi('Não foi possível conectar ao servidor em '+API_URL+'. Verifique se o backend está rodando e se o CORS está ativo.', 0);
+  }
+  let dados = null; try{ dados = await r.json(); }catch(e){}
+  if(r.status===401 && !caminho.startsWith('/auth/')){ sair(true); throw new ErroApi(ERROS['Not authenticated'], 401); }
+  if(!r.ok){
+    const msg = dados?.error;
+    throw new ErroApi(ERROS[msg] || msg || ('Erro '+r.status), r.status);
+  }
+  return dados;
+}
+
+const api = {
+  login: (email, password) => req('POST','/auth/login',{email, password}),
+  register: (email, password, name) => req('POST','/auth/register',{email, password, name}),
+  nos: () => req('GET','/fluxo/'),
+  conteudos: () => req('GET','/conteudos/'),
+  categorias: () => req('GET','/categorias/'),
+  criarCategoria: nome => req('POST','/categorias/',{nome, descricao:'Criada pelo gestor de fluxos'}),
+  async boasVindas(){
+    try{ return (await req('GET','/config/boas_vindas')).valor || ''; }
+    catch(e){ if(e.status===404) return ''; throw e; }
+  },
+  salvarBoasVindas: valor => req('PUT','/config/boas_vindas',{valor}),
+  criarNo: d => req('POST','/fluxo/',d),
+  atualizarNo: (id,d) => req('PATCH','/fluxo/'+id,d),
+  desativarNo: id => req('DELETE','/fluxo/'+id),
+  async criarConteudo(base, texto, categoria_id){
+    // o título de conteúdo é único no banco: tenta o nome base e, se já existir, acrescenta um sufixo
+    for(let i=1; i<=5; i++){
+      const titulo = (i===1 ? base : base+' ('+i+')').slice(0,200);
+      try{ return await req('POST','/conteudos/',{titulo, texto, categoria_id}); }
+      catch(e){ if(e.status!==409) throw e; }
+    }
+    return req('POST','/conteudos/',{titulo:(base+' '+Date.now().toString(36)).slice(0,200), texto, categoria_id});
+  },
+  atualizarConteudo: (id,d) => req('PATCH','/conteudos/'+id,d),
+  desativarConteudo: id => req('DELETE','/conteudos/'+id),
+};
+
+/* ---------- Estado em memória ---------- */
+const RAIZ = 'raiz';
+let nos = [], conteudos = new Map(), categorias = [], boasVindas = '';
+
+async function carregar(){
+  const [n, c, cat, bv] = await Promise.all([api.nos(), api.conteudos(), api.categorias(), api.boasVindas()]);
+  nos = n; conteudos = new Map(c.map(x=>[x.id,x])); categorias = cat; boasVindas = bv;
+}
+/* Recarrega tudo após uma alteração (os dados são pequenos) */
+async function recarregar(){
+  try{ await carregar(); }catch(e){ toast(e.message); }
+  route();
+}
+
+const porOrdem = (a,b) => (a.ordem-b.ordem) || (a.id-b.id);
+const getNo = id => nos.find(n=>n.id===Number(id));
+const filhosDe = fid => nos.filter(n => fid===RAIZ ? n.parent_id===null : n.parent_id===Number(fid)).sort(porOrdem);
+const menus = () => nos.filter(n=>n.tipo==='MENU');
+function getFluxo(fid){
+  if(fid===RAIZ) return {id:RAIZ, titulo:'Menu Principal', tipo:'MENU', parent_id:null, ativo:true, raiz:true};
+  const n = getNo(fid); return n && n.tipo==='MENU' ? n : null;
+}
+const nomeFluxo = fid => fid===RAIZ || fid===null ? 'Menu Principal' : (getNo(fid)?.titulo ?? '?');
+/* Um nó só aparece no WhatsApp se ele e todos os pais estiverem ativos */
+function visivel(n){
+  for(let x=n, i=0; x && i<50; x=x.parent_id===null?null:getNo(x.parent_id), i++) if(!x.ativo) return false;
+  return true;
+}
+function descendentes(id){
+  const s = new Set(), fila = [Number(id)];
+  while(fila.length){ const p = fila.pop(); nos.filter(n=>n.parent_id===p).forEach(n=>{ if(!s.has(n.id)){ s.add(n.id); fila.push(n.id); } }); }
+  return s;
+}
+
+/* ---------- Utilitários ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const resumo = (t,n=40) => { const s=String(t||'').replace(/\s+/g,' ').trim(); return s.length>n ? s.slice(0,n-1)+'…' : s; };
+
+let toastTimer;
+function toast(msg){
+  const t = $('#toast'); t.textContent = msg; t.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('on'), 3200);
+}
+
+const ICON = {
+  editar:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/><path d="M18.4 2.6a2 2 0 0 1 2.8 2.8L12 14.6 8 15.6l1-4z"/></svg>',
+  apagar:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 10v6M14 10v6"/></svg>',
+  reativar:'<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
+  busca:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>',
+  mais:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+  voltar:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>',
+};
+
+/* ---------- Mascote ---------- */
+const MASCOTE_SVG = `<svg viewBox="0 0 200 210" role="img" aria-label="Mascote capivara com um livro da UFV">
+  <ellipse cx="100" cy="150" rx="70" ry="52" fill="#a8683a"/>
+  <ellipse cx="100" cy="88" rx="46" ry="38" fill="#b9773f"/>
+  <circle cx="70" cy="56" r="9" fill="#8f5530"/>
+  <ellipse cx="134" cy="102" rx="22" ry="16" fill="#8f5530"/>
+  <ellipse cx="143" cy="96" rx="5" ry="4" fill="#2a1a10"/>
+  <circle cx="112" cy="80" r="4.5" fill="#2a1a10"/>
+  <circle cx="112" cy="80" r="13" fill="none" stroke="#6b4a2a" stroke-width="2.5"/>
+  <circle cx="86" cy="82" r="13" fill="none" stroke="#6b4a2a" stroke-width="2.5"/>
+  <path d="M60 124q40 22 84 0l-8 22q-34 14-68 0z" fill="#b3121b"/>
+  <g transform="rotate(-12 60 165)"><rect x="22" y="140" width="72" height="50" rx="4" fill="#e3ad3c" stroke="#8a5d14" stroke-width="2"/>
+  <text x="58" y="172" text-anchor="middle" font-family="Arial" font-weight="700" font-size="16" fill="#800000">UFV</text></g>
+  <ellipse cx="96" cy="176" rx="12" ry="9" fill="#8f5530"/>
+</svg>`;
+function mascote(){
+  return `<div class="mascote"><img src="capivara_UFV.png" alt="Mascote da UFV Campus Florestal" onerror="this.outerHTML=MASCOTE_SVG" style="width: 260px; height: 325px; margin-bottom:550px; margin-top:-35px;"></div>`;
+}
+
+/* ---------- Estado / status ---------- */
+function estadoHTML(n){
+  if(!n.ativo) return '<span class="estado">Inativo</span>';
+  if(!visivel(n)) return '<span class="estado oculto" title="Um fluxo acima deste está inativo, então ele não aparece no WhatsApp">Oculto</span>';
+  return '<span class="estado ativo">Ativo</span>';
+}
+const linkFluxo = fid => `<a class="tag" href="#/f/${esc(fid===null?RAIZ:fid)}">#Fluxo: ${esc(nomeFluxo(fid))}</a>`;
+
+/* =====================================================================
+   TELA 0 · Login
+   ===================================================================== */
+function telaLogin(){
+  document.body.classList.add('deslogado');
+  let cadastro = false;
+  $('#app').innerHTML = `
+  <div class="login">
+    <form class="painel" id="form-login" novalidate>
+      <h1 id="login-titulo">Entrar</h1>
+      <p id="login-sub">Acesse com o seu usuário do painel do chatbot.</p>
+      <label id="campo-nome" hidden>Nome<input type="text" id="l-nome" autocomplete="name"></label>
+      <label>E-mail<input type="email" id="l-email" autocomplete="username" required></label>
+      <label>Senha<input type="password" id="l-senha" autocomplete="current-password" required></label>
+      <p class="erro-campo" id="l-erro" hidden></p>
+      <button class="btn" type="submit" id="l-btn">Entrar</button>
+      <button class="link" type="button" id="l-alternar">Primeiro acesso? Criar o administrador</button>
+      <p style="font-size:14px">Servidor: <code>${esc(API_URL)}</code> · <button class="link" type="button" id="l-servidor" style="font-size:14px">alterar</button></p>
+    </form>
+  </div>`;
+  $('#l-email').focus();
+  $('#l-servidor').onclick = dlgAjustes;
+  $('#l-alternar').onclick = ()=>{
+    cadastro = !cadastro;
+    $('#campo-nome').hidden = !cadastro;
+    $('#login-titulo').textContent = cadastro ? 'Criar administrador' : 'Entrar';
+    $('#login-sub').textContent = cadastro
+      ? 'Só funciona enquanto não houver nenhum usuário. Os demais são criados por um administrador.'
+      : 'Acesse com o seu usuário do painel do chatbot.';
+    $('#l-btn').textContent = cadastro ? 'Criar e entrar' : 'Entrar';
+    $('#l-alternar').textContent = cadastro ? 'Já tenho usuário' : 'Primeiro acesso? Criar o administrador';
+  };
+  $('#form-login').onsubmit = async e=>{
+    e.preventDefault();
+    const email = $('#l-email').value.trim().toLowerCase(), senha = $('#l-senha').value;
+    const er = $('#l-erro'), btn = $('#l-btn');
+    if(!email || !senha){ er.hidden=false; er.textContent='Informe e-mail e senha.'; return; }
+    btn.disabled = true; er.hidden = true;
+    try{
+      if(cadastro) await api.register(email, senha, $('#l-nome').value.trim());
+      const r = await api.login(email, senha);
+      sessao = {token:r.token, nome:r.name, email:r.email, perfil:r.perfil};
+      gravarLocal('bbtSessao', JSON.stringify(sessao));
+      await entrar();
+    }catch(err){ er.hidden=false; er.textContent = err.message; }
+    finally{ btn.disabled = false; }
+  };
+}
+
+async function entrar(){
+  document.body.classList.remove('deslogado');
+  document.body.classList.toggle('leitura', !ehAdmin());
+  $('#app').innerHTML = '<p class="vazio">Carregando fluxos…</p>';
+  try{ await carregar(); }
+  catch(e){
+    if(e.status===401) return;
+    $('#app').innerHTML = `<div class="painel"><p class="erro-campo">${esc(e.message)}</p>
+      <p><button class="btn peq" id="tentar">Tentar de novo</button></p></div>`;
+    $('#tentar').onclick = entrar; return;
+  }
+  if(!ehAdmin()) toast('Você entrou como '+(sessao.perfil||'atendente')+': só leitura.');
+  route();
+}
+
+function sair(expirou){
+  sessao = null; gravarLocal('bbtSessao', null);
+  if(dlg.open) fechar();
+  nos = []; conteudos = new Map();
+  telaLogin();
+  if(expirou) toast('A sessão expirou. Entre novamente.');
+}
+
+/* =====================================================================
+   TELA 1 · Visão geral (fluxos = menus)
+   ===================================================================== */
+let filtroFluxos = '';
+function telaGeral(){
+  $('#app').innerHTML = `
+  <div class="grade">
+    <section class="painel" aria-labelledby="t1">
+      <div class="painel-topo">
+        <h1 id="t1">Lista de Fluxos do Chatbot</h1>
+        <div class="busca">${ICON.busca}<input type="text" id="busca-fluxos" placeholder="Pesquisar fluxos..." aria-label="Pesquisar fluxos" value="${esc(filtroFluxos)}"></div>
+      </div>
+      <div class="rolagem"><table>
+        <thead><tr><th>Nome do Fluxo</th><th>Onde aparece</th><th>Qtd. Opções</th><th>Status</th><th class="acoes">Ações</th></tr></thead>
+        <tbody id="corpo-fluxos"></tbody>
+      </table></div>
+    </section>
+    <aside class="coluna-lateral" aria-label="Ações do fluxo">
+      <button class="btn largo so-admin" data-acao="novo-fluxo">${ICON.mais} Criar Novo Fluxo</button>
+      <button class="btn largo so-admin" data-acao="excluir-fluxo">Desativar Fluxo</button>
+      <button class="btn largo so-admin" data-acao="editar-dados">Editar Dados do Fluxo</button>
+      <div class="balao" style="margin-top:14px">Aqui você vê todos os fluxos criados!</div>
+      ${mascote()}
+    </aside>
+  </div>`;
+  $('#busca-fluxos').addEventListener('input', e=>{ filtroFluxos = e.target.value; linhasFluxos(); });
+  linhasFluxos();
+}
+function linhasFluxos(){
+  const q = filtroFluxos.trim().toLowerCase();
+  const todos = [getFluxo(RAIZ), ...menus().sort((a,b)=>a.titulo.localeCompare(b.titulo,'pt'))];
+  const lista = todos.filter(f=>!q || (f.titulo+' '+nomeFluxo(f.parent_id)).toLowerCase().includes(q));
+  $('#corpo-fluxos').innerHTML = lista.length ? lista.map(f=>{
+    const id = f.raiz ? RAIZ : f.id;
+    const qtd = filhosDe(id).filter(n=>n.ativo).length;
+    const onde = f.raiz ? 'Início da conversa' : 'Opção em '+linkFluxo(f.parent_id);
+    const acoes = f.raiz
+      ? `<button class="icone so-admin" data-acao="editar-fluxo" data-id="${RAIZ}" aria-label="Editar mensagem de boas-vindas">${ICON.editar}</button>`
+      : `<button class="icone so-admin" data-acao="editar-fluxo" data-id="${f.id}" aria-label="Editar fluxo ${esc(f.titulo)}">${ICON.editar}</button>
+         ${f.ativo
+           ? `<button class="icone apagar so-admin" data-acao="apagar-fluxo" data-id="${f.id}" aria-label="Desativar fluxo ${esc(f.titulo)}" title="Desativar">${ICON.apagar}</button>`
+           : `<button class="icone reativar so-admin" data-acao="reativar" data-id="${f.id}" aria-label="Reativar fluxo ${esc(f.titulo)}" title="Reativar">${ICON.reativar}</button>`}`;
+    return `<tr class="clicavel ${f.ativo?'':'desativado'}" data-fluxo="${esc(id)}">
+      <td><a href="#/f/${esc(id)}" style="color:inherit;text-decoration:none">${esc(f.titulo)}</a></td>
+      <td>${onde}</td>
+      <td>${qtd}</td>
+      <td>${f.raiz ? '<span class="estado ativo">Ativo</span>' : estadoHTML(f)}</td>
+      <td class="acoes"><span class="icones">${acoes}</span></td>
+    </tr>`;}).join('')
+    : `<tr><td colspan="5" class="vazio">Nenhum fluxo corresponde à pesquisa.</td></tr>`;
+}
+
+/* =====================================================================
+   TELA 2 · Opções de um fluxo (filhos do menu)
+   ===================================================================== */
+let filtroMsgs = '', fluxoAtual = null, destacar = null;
+function telaFluxo(fid){
+  const f = getFluxo(fid);
+  if(!f){ location.hash = '#/'; return; }
+  if(fluxoAtual !== fid){ filtroMsgs = ''; fluxoAtual = fid; }
+  const textoMenu = f.raiz
+    ? (boasVindas || 'Escolha uma opção:')
+    : f.titulo;
+  $('#app').innerHTML = `
+  <button class="voltar" data-acao="voltar">${ICON.voltar} Voltar para Todos os Fluxos</button>
+  <div class="grade">
+    <div>
+      <section class="painel" aria-labelledby="t2">
+        <div class="painel-topo">
+          <h1 id="t2">Fluxo: ${esc(f.titulo)}</h1>
+          <div class="busca">${ICON.busca}<input type="text" id="busca-msgs" placeholder="Pesquisar opções..." aria-label="Pesquisar opções" value="${esc(filtroMsgs)}"></div>
+        </div>
+        ${f.raiz ? '' : (!visivel(f) ? `<div class="aviso">Este fluxo não aparece no WhatsApp porque ${f.ativo?'um fluxo acima dele':'ele'} está inativo.</div>` : '')}
+        <div class="texto-menu">
+          <div><div class="rotulo">Mensagem do menu</div>
+            <div class="conteudo">${esc(textoMenu)}${f.raiz && !boasVindas ? ' <span class="nota">(texto padrão do bot; ainda não foi configurado)</span>' : ''}</div>
+            <span class="nota">${f.raiz ? 'Enviada no início da conversa, seguida das opções abaixo.' : 'No WhatsApp, o texto deste submenu é o próprio nome do fluxo, seguido das opções abaixo.'}</span></div>
+          <button class="btn sec peq so-admin" data-acao="editar-fluxo" data-id="${esc(fid)}">Editar</button>
+        </div>
+        <div id="avisos"></div>
+        <div class="rolagem"><table>
+          <thead><tr><th style="width:70px">Ordem</th><th>Opção (o que o usuário toca)</th><th>O que acontece</th><th class="acoes">Ações</th></tr></thead>
+          <tbody id="corpo-msgs"></tbody>
+        </table></div>
+      </section>
+      <div class="rodape-tabela so-admin">
+        <button class="btn" data-acao="nova-msg">${ICON.mais} Adicionar Nova Opção a este Fluxo</button>
+      </div>
+    </div>
+    <aside class="coluna-lateral" aria-label="Ajuda">
+      <div class="dica">
+        <h2>Lógica do Fluxo</h2>
+        <p>Cada linha é uma opção que o usuário toca no WhatsApp. Ela pode responder com um texto, abrir outro fluxo (submenu) ou chamar um atendente.</p>
+        <p>Até ${MAX_BOTOES} opções viram botões; de 4 a ${MAX_LINHAS}, uma lista.</p>
+      </div>
+      ${mascote()}
+    </aside>
+  </div>`;
+  $('#busca-msgs').addEventListener('input', e=>{ filtroMsgs = e.target.value; linhasMsgs(); });
+  linhasMsgs();
+}
+
+function destinoHTML(n){
+  if(n.tipo==='MENU') return 'Abre o submenu -&gt; '+linkFluxo(n.id);
+  if(n.tipo==='ATENDENTE') return 'Transfere para um atendente humano';
+  const c = conteudos.get(n.conteudo_id);
+  return `<span class="texto-msg">${esc(resumo(c?.texto ?? '(texto não encontrado)', 220))}</span>
+    <span class="nota">Depois pergunta se a resposta ajudou.</span>`;
+}
+
+function linhasMsgs(){
+  const f = getFluxo(fluxoAtual); if(!f) return;
+  const todas = filhosDe(fluxoAtual);
+  const ativas = todas.filter(n=>n.ativo);
+  const usaBotoes = ativas.length <= MAX_BOTOES;
+  const limite = usaBotoes ? MAX_BOTAO : MAX_TITULO;
+
+  const avisos = [];
+  if(ativas.length > MAX_LINHAS) avisos.push(`Este fluxo tem ${ativas.length} opções ativas, mas o WhatsApp só mostra as ${MAX_LINHAS} primeiras (pela ordem).`);
+  $('#avisos').innerHTML = avisos.map(a=>`<div class="aviso">${esc(a)}</div>`).join('');
+
+  const q = filtroMsgs.trim().toLowerCase();
+  const lista = todas.filter(n=>!q || (n.titulo+' '+(conteudos.get(n.conteudo_id)?.texto||'')).toLowerCase().includes(q));
+  const posicao = new Map(ativas.map((n,i)=>[n.id,i+1]));
+  $('#corpo-msgs').innerHTML = lista.length ? lista.map(n=>`
+    <tr id="msg-${n.id}" class="${n.ativo?'':'desativado'}">
+      <td class="num">${n.ativo ? posicao.get(n.id) : '–'}</td>
+      <td>${esc(n.titulo)}
+        ${!n.ativo ? '<span class="nota">Inativa: não aparece no WhatsApp</span>' : ''}
+        ${n.ativo && n.titulo.length>limite ? `<span class="alerta">Aparece cortado: “${esc(n.titulo.slice(0,limite))}” (${usaBotoes?'botões':'lista'} aceitam ${limite} caracteres)</span>` : ''}
+        ${n.ativo && posicao.get(n.id)>MAX_LINHAS ? '<span class="alerta">Fora das 10 primeiras: não aparece</span>' : ''}</td>
+      <td class="destino">${destinoHTML(n)}</td>
+      <td class="acoes"><span class="icones">
+        <button class="icone so-admin" data-acao="editar-msg" data-id="${n.id}" aria-label="Editar opção ${esc(n.titulo)}">${ICON.editar}</button>
+        ${n.ativo
+          ? `<button class="icone apagar so-admin" data-acao="apagar-msg" data-id="${n.id}" aria-label="Desativar opção ${esc(n.titulo)}" title="Desativar">${ICON.apagar}</button>`
+          : `<button class="icone reativar so-admin" data-acao="reativar" data-id="${n.id}" aria-label="Reativar opção ${esc(n.titulo)}" title="Reativar">${ICON.reativar}</button>`}
+      </span></td>
+    </tr>`).join('')
+    : `<tr><td colspan="4" class="vazio">${todas.length?'Nenhuma opção corresponde à pesquisa.':'Este fluxo ainda não tem opções. Use o botão abaixo para adicionar a primeira.'}</td></tr>`;
+  if(destacar){ irParaMsg(destacar); destacar = null; }
+}
+function irParaMsg(id){
+  const tr = document.getElementById('msg-'+id); if(!tr) return;
+  tr.scrollIntoView({block:'center', behavior:'smooth'});
+  tr.classList.remove('destaque'); void tr.offsetWidth; tr.classList.add('destaque');
+}
+
+/* =====================================================================
+   Diálogos
+   ===================================================================== */
+const dlg = $('#dlg');
+function abrir(html){ dlg.innerHTML = html; if(!dlg.open) dlg.showModal(); }
+function fechar(){ dlg.close(); }
+dlg.addEventListener('click', e=>{ if(e.target===dlg) fechar(); });
+
+/* Envia o formulário com o botão travado e mostra o erro no próprio diálogo */
+function aoEnviar(fn){
+  const form = dlg.querySelector('form');
+  form.onsubmit = async e=>{
+    e.preventDefault();
+    const btn = form.querySelector('[type=submit]'), er = form.querySelector('.erro-campo');
+    if(er) er.hidden = true;
+    btn.disabled = true;
+    try{ await fn(); }
+    catch(err){
+      if(err.status===401) return;
+      if(er){ er.hidden=false; er.textContent = err.message; } else toast(err.message);
+    }
+    finally{ btn.disabled = false; }
+  };
+}
+const erroCampo = t => { const er = dlg.querySelector('.erro-campo'); er.hidden=false; er.textContent=t; };
+
+function contador(input, alvo, limiteAviso){
+  const atualizar = ()=>{
+    const n = input.value.length;
+    alvo.textContent = n+'/'+input.maxLength + (limiteAviso && n>limiteAviso ? ` · em botões aparecem só ${limiteAviso}` : '');
+    alvo.classList.toggle('alerta-cont', !!limiteAviso && n>limiteAviso);
+  };
+  input.addEventListener('input', atualizar); atualizar();
+}
+
+function dlgConfirmar({titulo, texto, rotulo, perigo, aoConfirmar}){
+  abrir(`<form method="dialog">
+    <div class="dlg-topo"><h3>${esc(titulo)}</h3></div>
+    <div class="dlg-corpo"><p style="margin:0">${texto}</p><p class="erro-campo" hidden></p></div>
+    <div class="dlg-rodape">
+      <button type="button" class="btn sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn ${perigo?'perigo':''}">${esc(rotulo)}</button>
+    </div></form>`);
+  aoEnviar(async()=>{ await aoConfirmar(); fechar(); });
+}
+
+function dlgEscolherFluxo({titulo, rotulo, perigo, incluirRaiz, aoEscolher}){
+  const lista = [...(incluirRaiz?[getFluxo(RAIZ)]:[]), ...menus().filter(m=>!perigo || m.ativo)];
+  if(!lista.length){ toast('Ainda não há fluxos.'); return; }
+  abrir(`<form method="dialog">
+    <div class="dlg-topo"><h3>${esc(titulo)}</h3></div>
+    <div class="dlg-corpo"><label>Fluxo
+      <select id="sel-fluxo">${lista.map(f=>`<option value="${esc(f.raiz?RAIZ:f.id)}">${esc(f.titulo)}</option>`).join('')}</select></label></div>
+    <div class="dlg-rodape">
+      <button type="button" class="btn sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn ${perigo?'perigo':''}">${esc(rotulo)}</button>
+    </div></form>`);
+  dlg.querySelector('form').onsubmit = e=>{ e.preventDefault(); const id = $('#sel-fluxo').value; fechar(); aoEscolher(id); };
+}
+
+/* Opções de "onde este fluxo aparece": raiz + menus, sem o próprio e os descendentes (evita ciclos) */
+function opcoesPai(excluirId){
+  const proibidos = excluirId ? descendentes(excluirId) : new Set();
+  if(excluirId) proibidos.add(Number(excluirId));
+  return [[RAIZ,'Menu Principal'], ...menus().filter(m=>!proibidos.has(m.id)).map(m=>[String(m.id), m.titulo+(m.ativo?'':' (inativo)')])];
+}
+const proximaOrdem = fid => Math.max(0, ...filhosDe(fid).map(n=>n.ordem)) + 1;
+
+function dlgBoasVindas(){
+  abrir(`<form method="dialog" novalidate>
+    <div class="dlg-topo"><h3>Mensagem do Menu Principal</h3></div>
+    <div class="dlg-corpo">
+      <label>Texto de boas-vindas<small>Enviado no início da conversa, acima das opções do Menu Principal.</small>
+        <textarea id="bv-texto" maxlength="1024" placeholder="Ex.: Olá! Sou o assistente da Biblioteca UFV Campus Florestal. Escolha uma opção:">${esc(boasVindas)}</textarea></label>
+      <p class="erro-campo" hidden></p>
+    </div>
+    <div class="dlg-rodape">
+      <button type="button" class="btn sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn">Salvar alterações</button>
+    </div></form>`);
+  $('#bv-texto').focus();
+  aoEnviar(async()=>{
+    const valor = $('#bv-texto').value.trim();
+    if(!valor) return erroCampo('Escreva o texto de boas-vindas.');
+    await api.salvarBoasVindas(valor);
+    fechar(); toast('Mensagem salva.'); recarregar();
+  });
+}
+
+function dlgFluxo(f){
+  if(f?.raiz) return dlgBoasVindas();
+  const novo = !f;
+  const paiAtual = novo ? (fluxoAtual && getFluxo(fluxoAtual) ? fluxoAtual : RAIZ) : (f.parent_id===null ? RAIZ : String(f.parent_id));
+  abrir(`<form method="dialog" novalidate>
+    <div class="dlg-topo"><h3>${novo?'Criar novo fluxo':'Editar dados do fluxo'}</h3></div>
+    <div class="dlg-corpo">
+      <label>Nome do fluxo<small>É o texto do botão que abre este fluxo e também a mensagem mostrada acima das opções dele.</small>
+        <input type="text" id="f-nome" maxlength="${MAX_TITULO}" value="${esc(f?.titulo||'')}" placeholder="Ex.: Horários de Ônibus">
+        <span class="contador" id="f-cont"></span></label>
+      <label>Aparece como opção em<small>O menu onde o usuário toca para abrir este fluxo.</small>
+        <select id="f-pai">${opcoesPai(f?.id).map(([v,r])=>`<option value="${esc(v)}" ${v===String(paiAtual)?'selected':''}>${esc(r)}</option>`).join('')}</select></label>
+      <label>Ordem<small>Posição entre as opções desse menu (menor aparece primeiro).</small>
+        <input type="number" id="f-ordem" min="0" max="999" value="${novo?proximaOrdem(paiAtual):f.ordem}"></label>
+      ${novo?'':`<label class="check"><input type="checkbox" id="f-ativo" ${f.ativo?'checked':''}> Ativo (aparece no WhatsApp)</label>`}
+      <p class="erro-campo" hidden></p>
+    </div>
+    <div class="dlg-rodape">
+      <button type="button" class="btn sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn">${novo?'Criar fluxo':'Salvar alterações'}</button>
+    </div></form>`);
+  contador($('#f-nome'), $('#f-cont'), MAX_BOTAO);
+  $('#f-nome').focus();
+  if(novo) $('#f-pai').onchange = e=>{ $('#f-ordem').value = proximaOrdem(e.target.value); };
+  aoEnviar(async()=>{
+    const titulo = $('#f-nome').value.trim();
+    if(!titulo) return erroCampo('Dê um nome ao fluxo para continuar.');
+    const pai = $('#f-pai').value;
+    const dados = {titulo, tipo:'MENU', parent_id: pai===RAIZ ? null : Number(pai), conteudo_id:null, ordem: Number($('#f-ordem').value)||0};
+    if(novo){
+      const criado = await api.criarNo(dados);
+      fechar(); toast('Fluxo criado.');
+      await carregar().catch(e=>toast(e.message));
+      if(location.hash === '#/f/'+criado.id) route(); else location.hash = '#/f/'+criado.id;
+    } else {
+      dados.ativo = $('#f-ativo').checked;
+      await api.atualizarNo(f.id, dados);
+      fechar(); toast('Alterações salvas.'); recarregar();
+    }
+  });
+}
+
+const TIPOS = {
+  RESPOSTA:'Responde com um texto',
+  MENU:'Abre um submenu (outro fluxo)',
+  ATENDENTE:'Chama um atendente humano',
+};
+
+function dlgMensagem(fid, n){
+  const flow = getFluxo(fid); if(!flow) return;
+  const novo = !n;
+  const c = n?.conteudo_id ? conteudos.get(n.conteudo_id) : null;
+  const catAtual = c?.categoria_id ?? categorias[0]?.id ?? '';
+  abrir(`<form method="dialog" novalidate>
+    <div class="dlg-topo"><h3>${novo?'Nova opção em “'+esc(flow.titulo)+'”':'Editar opção “'+esc(n.titulo)+'”'}</h3></div>
+    <div class="dlg-corpo">
+      <label>Texto da opção<small>O que aparece no botão ou na lista do WhatsApp.</small>
+        <input type="text" id="m-titulo" maxlength="${MAX_TITULO}" value="${esc(n?.titulo||'')}" placeholder="Ex.: Como pagar a multa">
+        <span class="contador" id="m-cont"></span></label>
+      <label>O que acontece quando o usuário toca?
+        <select id="m-tipo">${Object.entries(TIPOS).map(([k,v])=>`<option value="${k}" ${(n?.tipo||'RESPOSTA')===k?'selected':''}>${v}</option>`).join('')}</select></label>
+      <div id="m-resposta" style="display:flex;flex-direction:column;gap:16px">
+        <label>Texto da resposta<small>É exatamente o que o usuário recebe no WhatsApp.</small>
+          <textarea id="m-texto" placeholder="Ex.: O pagamento é feito por GRU, emitida no balcão de atendimento.">${esc(c?.texto||'')}</textarea></label>
+        <label>Categoria<small>Usada para organizar os conteúdos no banco.</small>
+          <select id="m-cat">${categorias.length
+            ? categorias.map(k=>`<option value="${k.id}" ${k.id===catAtual?'selected':''}>${esc(k.nome)}</option>`).join('')
+            : '<option value="">Geral (será criada agora)</option>'}</select></label>
+      </div>
+      <p id="m-info" class="nota" style="margin:0"></p>
+      <label>Ordem<small>Posição nesta lista (menor aparece primeiro).</small>
+        <input type="number" id="m-ordem" min="0" max="999" value="${novo?proximaOrdem(fid):n.ordem}"></label>
+      ${novo?'':`<label class="check"><input type="checkbox" id="m-ativo" ${n.ativo?'checked':''}> Ativa (aparece no WhatsApp)</label>`}
+      <p class="erro-campo" hidden></p>
+    </div>
+    <div class="dlg-rodape">
+      <button type="button" class="btn sec" data-fechar>Cancelar</button>
+      <button type="submit" class="btn">${novo?'Adicionar opção':'Salvar alterações'}</button>
+    </div></form>`);
+  contador($('#m-titulo'), $('#m-cont'), MAX_BOTAO);
+  $('#m-titulo').focus();
+
+  const pintar = ()=>{
+    const t = $('#m-tipo').value;
+    $('#m-resposta').hidden = t!=='RESPOSTA';
+    $('#m-resposta').style.display = t==='RESPOSTA' ? 'flex' : 'none';
+    $('#m-info').textContent =
+      t==='MENU' ? (novo || n.tipo!=='MENU'
+        ? 'Será criado um novo fluxo com este nome. Depois, abra-o para adicionar as opções dele.'
+        : 'Esta opção já é um fluxo. Abra-o na lista para editar as opções dele.')
+      : t==='ATENDENTE' ? 'O bot envia a mensagem de espera configurada e abre um atendimento no painel.'
+      : '';
+  };
+  $('#m-tipo').onchange = pintar; pintar();
+
+  aoEnviar(async()=>{
+    const titulo = $('#m-titulo').value.trim();
+    if(!titulo) return erroCampo('Escreva o texto da opção.');
+    const tipo = $('#m-tipo').value;
+    const ordem = Number($('#m-ordem').value)||0;
+    const parent_id = fid===RAIZ ? null : Number(fid);
+    let conteudo_id = null;
+
+    if(tipo==='RESPOSTA'){
+      const texto = $('#m-texto').value.trim();
+      if(!texto) return erroCampo('Escreva o texto da resposta.');
+      let categoria_id = Number($('#m-cat').value) || null;
+      if(!categoria_id){ categoria_id = (await api.criarCategoria('Geral')).id; }
+      if(n?.conteudo_id && conteudos.has(n.conteudo_id)){
+        await api.atualizarConteudo(n.conteudo_id, {texto, categoria_id, ativo:true});
+        conteudo_id = n.conteudo_id;
+      } else {
+        conteudo_id = (await api.criarConteudo(flow.titulo+' › '+titulo, texto, categoria_id)).id;
+      }
+    }
+
+    const dados = {titulo, tipo, parent_id, conteudo_id, ordem};
+    let id;
+    if(novo){
+      id = (await api.criarNo(dados)).id;
+    } else {
+      dados.ativo = $('#m-ativo').checked;
+      await api.atualizarNo(n.id, dados); id = n.id;
+      // deixou de ser resposta: desativa o conteúdo antigo para não ficar solto no painel
+      if(n.tipo==='RESPOSTA' && tipo!=='RESPOSTA' && n.conteudo_id) await api.desativarConteudo(n.conteudo_id).catch(()=>{});
+    }
+    fechar(); toast(novo?'Opção adicionada.':'Alterações salvas.');
+    destacar = id; recarregar();
+  });
+}
+
+function dlgAjustes(){
+  const ocultar = lerLocal('ocultarMascote')==='1';
+  abrir(`<form method="dialog" novalidate>
+    <div class="dlg-topo"><h3>Ajustes</h3></div>
+    <div class="dlg-corpo">
+      <label class="check"><input type="checkbox" id="aj-mascote" ${ocultar?'':'checked'}> Mostrar o mascote e as dicas</label>
+      <label>Endereço da API<small>Padrão: ${esc(API_PADRAO)}</small>
+        <input type="text" id="aj-api" value="${esc(API_URL)}"></label>
+      ${sessao ? `<p style="margin:0;color:var(--texto-suave)">Conectado como <strong>${esc(sessao.nome||sessao.email)}</strong> (${esc(sessao.perfil)}).</p>` : ''}
+    </div>
+    <div class="dlg-rodape"><button type="submit" class="btn">Fechar</button></div></form>`);
+  $('#aj-mascote').onchange = e=>{
+    const oculto = !e.target.checked; document.body.classList.toggle('sem-mascote', oculto);
+    gravarLocal('ocultarMascote', oculto?'1':'0');
+  };
+  dlg.querySelector('form').onsubmit = e=>{
+    e.preventDefault();
+    const novo = $('#aj-api').value.trim().replace(/\/+$/,'') || API_PADRAO;
+    fechar();
+    if(novo !== API_URL){
+      API_URL = novo; gravarLocal('apiUrl', novo===API_PADRAO ? null : novo);
+      toast('Endereço da API alterado.');
+      if(sessao) entrar(); else telaLogin();
+    }
+  };
+}
+
+/* =====================================================================
+   Eventos globais (delegação)
+   ===================================================================== */
+document.addEventListener('click', e=>{
+  if(e.target.closest('[data-fechar]')){ fechar(); return; }
+
+  const btn = e.target.closest('[data-acao]');
+  if(btn){
+    const a = btn.dataset.acao, id = btn.dataset.id;
+    const acoes = {
+      'voltar': ()=>{ location.hash = '#/'; },
+      'novo-fluxo': ()=>dlgFluxo(null),
+      'editar-fluxo': ()=>dlgFluxo(getFluxo(id)),
+      'apagar-fluxo': ()=>confirmarDesativar(Number(id)),
+      'reativar': ()=>reativar(Number(id)),
+      'editar-dados': ()=>dlgEscolherFluxo({titulo:'Editar dados de qual fluxo?', rotulo:'Continuar', incluirRaiz:true, aoEscolher:i=>dlgFluxo(getFluxo(i))}),
+      'excluir-fluxo': ()=>dlgEscolherFluxo({titulo:'Desativar qual fluxo?', rotulo:'Continuar', perigo:true, aoEscolher:i=>confirmarDesativar(Number(i))}),
+      'nova-msg': ()=>dlgMensagem(fluxoAtual, null),
+      'editar-msg': ()=>dlgMensagem(fluxoAtual, getNo(id)),
+      'apagar-msg': ()=>confirmarDesativar(Number(id)),
+    };
+    acoes[a]?.(); return;
+  }
+
+  const linha = e.target.closest('tr[data-fluxo]');             // clicar na linha abre o fluxo
+  if(linha && !e.target.closest('a,button')) location.hash = '#/f/'+linha.dataset.fluxo;
+});
+
+function confirmarDesativar(id){
+  const n = getNo(id); if(!n) return;
+  const ehFluxo = n.tipo==='MENU';
+  const qtd = ehFluxo ? descendentes(id).size : 0;
+  dlgConfirmar({
+    titulo: ehFluxo ? 'Desativar fluxo' : 'Desativar opção', perigo:true,
+    rotulo: ehFluxo ? 'Desativar fluxo' : 'Desativar opção',
+    texto: `Desativar <strong>${esc(n.titulo)}</strong>? ${ehFluxo && qtd
+      ? `As ${qtd} opções dentro dele também deixam de aparecer no WhatsApp. `
+      : ''}Nada é apagado: você pode reativar depois.`,
+    aoConfirmar: async()=>{ await api.desativarNo(id); toast('Desativado.'); recarregar(); }
+  });
+}
+async function reativar(id){
+  try{ await api.atualizarNo(id, {ativo:true}); toast('Reativado.'); destacar = id; recarregar(); }
+  catch(e){ if(e.status!==401) toast(e.message); }
+}
+
+$('#nav-editar').onclick = ()=>{
+  const f = getFluxo(fluxoAtual);
+  if(location.hash.startsWith('#/f/') && f) dlgFluxo(f);
+  else dlgEscolherFluxo({titulo:'Abrir qual fluxo?', rotulo:'Continuar', incluirRaiz:true, aoEscolher:i=>{ location.hash='#/f/'+i; }});
+};
+$('#nav-ajustes').onclick = dlgAjustes;
+$('#nav-sair').onclick = ()=>sair(false);
+
+/* ---------- Rotas (hash): #/  e  #/f/<id | raiz> ---------- */
+function route(){
+  if(!sessao) return telaLogin();
+  const m = location.hash.match(/^#\/f\/(.+)$/);
+  if(m) telaFluxo(decodeURIComponent(m[1])); else { fluxoAtual = null; telaGeral(); }
+}
+window.addEventListener('hashchange', ()=>{ if(sessao){ route(); window.scrollTo(0,0); } });
+
+(function iniciar(){
+  if(lerLocal('ocultarMascote')==='1') document.body.classList.add('sem-mascote');
+  if(sessao?.token) entrar(); else telaLogin();
+})();
+</script>
+</body>
+</html>
