@@ -1,7 +1,7 @@
 from app.core.audit import registrar
 from app.core.database.extensions import db
 from app.core.dtos import ResultDTO
-from app.core.models import Categoria
+from app.core.models import Categoria, Conteudo
 from app.core.serializers import categoria_dict
 
 
@@ -17,7 +17,7 @@ def obter(categoria_id: int) -> ResultDTO:
     return ResultDTO.ok(categoria_dict(categoria))
 
 
-def criar(dados: dict, autor_id: str) -> ResultDTO:
+def criar(dados: dict, autor_id: int) -> ResultDTO:
     nome = (dados.get("nome") or "").strip()
     if not nome:
         return ResultDTO.bad_request("nome is required")
@@ -30,7 +30,7 @@ def criar(dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.created(categoria_dict(categoria))
 
 
-def atualizar(categoria_id: int, dados: dict, autor_id: str) -> ResultDTO:
+def atualizar(categoria_id: int, dados: dict, autor_id: int) -> ResultDTO:
     categoria = db.session.get(Categoria, categoria_id)
     if not categoria:
         return ResultDTO.not_found("Categoria not found")
@@ -45,10 +45,16 @@ def atualizar(categoria_id: int, dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.ok(categoria_dict(categoria))
 
 
-def remover(categoria_id: int, autor_id: str) -> ResultDTO:
+def remover(categoria_id: int, autor_id: int) -> ResultDTO:
     categoria = db.session.get(Categoria, categoria_id)
     if not categoria:
         return ResultDTO.not_found("Categoria not found")
+
+    em_uso = Conteudo.query.filter_by(categoria_id=categoria_id).count()
+    if em_uso:
+        return ResultDTO.conflict(
+            f"Categoria tem {em_uso} conteúdo(s); mova-os para outra categoria antes de remover"
+        )
 
     db.session.delete(categoria)
     registrar(autor_id, "REMOVEU_CATEGORIA", "categoria", categoria_id)

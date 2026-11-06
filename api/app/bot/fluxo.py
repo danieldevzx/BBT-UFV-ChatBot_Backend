@@ -1,16 +1,29 @@
-from app.core.models import ConfigBot, NoFluxo
+from sqlalchemy import or_
+
+from app.core.models import ConfigBot, Conteudo, NoFluxo
 
 
-def listar_filhos(parent_id=None):
+def _visiveis():
+    """Nós ativos; RESPOSTA só aparece se o conteúdo dela também estiver ativo."""
     return (
-        NoFluxo.query.filter_by(ativo=True, parent_id=parent_id)
-        .order_by(NoFluxo.ordem, NoFluxo.id)
-        .all()
+        NoFluxo.query.outerjoin(Conteudo, NoFluxo.conteudo_id == Conteudo.id)
+        .filter(NoFluxo.ativo.is_(True))
+        .filter(or_(NoFluxo.tipo != "RESPOSTA", Conteudo.ativo.is_(True)))
     )
 
 
+def listar_filhos(parent_id=None):
+    query = _visiveis()
+    query = (
+        query.filter(NoFluxo.parent_id.is_(None))
+        if parent_id is None
+        else query.filter(NoFluxo.parent_id == parent_id)
+    )
+    return query.order_by(NoFluxo.ordem, NoFluxo.id).all()
+
+
 def obter_no(no_id):
-    return NoFluxo.query.filter_by(id=no_id, ativo=True).first()
+    return _visiveis().filter(NoFluxo.id == no_id).first()
 
 
 def obter_config(chave, default=None):

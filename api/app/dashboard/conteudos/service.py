@@ -21,7 +21,7 @@ def obter(conteudo_id: int) -> ResultDTO:
     return ResultDTO.ok(conteudo_dict(conteudo))
 
 
-def criar(dados: dict, autor_id: str) -> ResultDTO:
+def criar(dados: dict, autor_id: int) -> ResultDTO:
     titulo = (dados.get("titulo") or "").strip()
     texto = (dados.get("texto") or "").strip()
     categoria_id = dados.get("categoria_id")
@@ -46,7 +46,7 @@ def criar(dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.created(conteudo_dict(conteudo))
 
 
-def atualizar(conteudo_id: int, dados: dict, autor_id: str) -> ResultDTO:
+def atualizar(conteudo_id: int, dados: dict, autor_id: int) -> ResultDTO:
     conteudo = db.session.get(Conteudo, conteudo_id)
     if not conteudo:
         return ResultDTO.not_found("Conteudo not found")
@@ -73,7 +73,7 @@ def atualizar(conteudo_id: int, dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.ok(conteudo_dict(conteudo))
 
 
-def desativar(conteudo_id: int, autor_id: str) -> ResultDTO:
+def desativar(conteudo_id: int, autor_id: int) -> ResultDTO:
     conteudo = db.session.get(Conteudo, conteudo_id)
     if not conteudo:
         return ResultDTO.not_found("Conteudo not found")

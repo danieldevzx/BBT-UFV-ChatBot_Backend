@@ -19,21 +19,21 @@ def criar():
     return jsonify(result.data), result.status_code
 
 
-@usuarios_bp.route("/<usuario_id>", methods=["GET"])
+@usuarios_bp.route("/<int:usuario_id>", methods=["GET"])
 @require_perfil("ADMIN")
 def obter(usuario_id):
     result = service.obter(usuario_id)
     return jsonify(result.data), result.status_code
 
 
-@usuarios_bp.route("/<usuario_id>", methods=["PATCH"])
+@usuarios_bp.route("/<int:usuario_id>", methods=["PATCH"])
 @require_perfil("ADMIN")
 def atualizar(usuario_id):
     result = service.atualizar(usuario_id, request.get_json(silent=True) or {}, g.usuario.id)
     return jsonify(result.data), result.status_code
 
 
-@usuarios_bp.route("/<usuario_id>", methods=["DELETE"])
+@usuarios_bp.route("/<int:usuario_id>", methods=["DELETE"])
 @require_perfil("ADMIN")
 def desativar(usuario_id):
     result = service.desativar(usuario_id, g.usuario.id)

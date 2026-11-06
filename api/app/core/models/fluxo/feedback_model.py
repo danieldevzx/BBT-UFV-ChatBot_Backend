@@ -1,5 +1,5 @@
 from app.core.database.extensions import db
-from app.core.models._common import utcnow
+from app.core.models._common import IsoDateTime, utcnow
 
 
 class Feedback(db.Model):
@@ -7,8 +7,10 @@ class Feedback(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     no_fluxo_id = db.Column(db.Integer, db.ForeignKey("no_fluxo.id"), nullable=False)
-    util = db.Column(db.Boolean)
+    util = db.Column(db.Boolean, nullable=False)
     comentario = db.Column(db.Text)
-    criado_em = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    criado_em = db.Column(IsoDateTime, nullable=False, default=utcnow)
 
     no_fluxo = db.relationship("NoFluxo", lazy="joined")
+
+    __table_args__ = (db.CheckConstraint("util in (0,1)"),)

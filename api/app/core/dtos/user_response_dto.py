@@ -4,7 +4,7 @@ from typing import Optional
 
 @dataclass
 class UserResponseDTO:
-    id: str
+    id: int
     email: str
     name: Optional[str] = None
     perfil: Optional[str] = None

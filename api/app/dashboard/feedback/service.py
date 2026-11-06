@@ -19,10 +19,12 @@ def criar(dados: dict) -> ResultDTO:
         return ResultDTO.bad_request("no_fluxo_id is required")
     if not db.session.get(NoFluxo, no_fluxo_id):
         return ResultDTO.bad_request("Unknown no_fluxo_id")
+    if dados.get("util") is None:
+        return ResultDTO.bad_request("util is required (true or false)")
 
     feedback = Feedback(
         no_fluxo_id=no_fluxo_id,
-        util=dados.get("util"),
+        util=bool(dados.get("util")),
         comentario=dados.get("comentario"),
     )
     db.session.add(feedback)

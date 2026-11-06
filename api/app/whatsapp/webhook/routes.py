@@ -31,9 +31,16 @@ def handle():
     signature = request.headers.get("X-Hub-Signature-256", "")
     app_secret = current_app.config.get("WHATSAPP_APP_SECRET", "")
 
-    if app_secret and not _verify_signature(request.get_data(), signature, app_secret):
-        logger.warning("Invalid webhook signature")
-        return "Unauthorized", HTTPStatus.UNAUTHORIZED
+    if app_secret:
+        if not _verify_signature(request.get_data(), signature, app_secret):
+            logger.warning("Invalid webhook signature")
+            return "Unauthorized", HTTPStatus.UNAUTHORIZED
+    elif current_app.config.get("WHATSAPP_REQUIRE_SIGNATURE", True):
+        logger.error(
+            "WHATSAPP_APP_SECRET não configurado: webhook recusado. "
+            "Em desenvolvimento, use WHATSAPP_REQUIRE_SIGNATURE=false."
+        )
+        return "Webhook signature not configured", HTTPStatus.SERVICE_UNAVAILABLE
 
     data = request.get_json(silent=True)
     if not data:

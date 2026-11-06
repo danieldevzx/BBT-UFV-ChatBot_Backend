@@ -1,17 +1,17 @@
 services:
 
-  postgres:
-    image: postgres:16-alpine
-    container_name: bbt-postgres
+  api:
+    build: .
+    container_name: bbt-chatbot
     restart: unless-stopped
+    env_file: .env
     environment:
-      POSTGRES_DB: bbt_bot
-      POSTGRES_USER: bbt
-      POSTGRES_PASSWORD: bbt_secret
+      DB_PATH: /data/chatbot.db
     ports:
-      - "5432:5432"
+      - "5000:5000"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      # Volume persistente: sem ele o banco é apagado a cada deploy.
+      - chatbot-data:/data
 
 volumes:
-  pgdata:
+  chatbot-data:

@@ -26,7 +26,12 @@ def _perfil_by_nome(nome: str) -> Perfil | None:
     return Perfil.query.filter_by(nome=nome).first()
 
 
+def _normalizar_email(email: str | None) -> str:
+    return (email or "").strip().lower()
+
+
 def register(req: RegisterRequestDTO) -> ResultDTO:
+    req.email = _normalizar_email(req.email)
     if not req.email or not req.password:
         return ResultDTO.bad_request("email and password are required")
 
@@ -36,7 +41,7 @@ def register(req: RegisterRequestDTO) -> ResultDTO:
         if not atual or atual.perfil.nome != "ADMIN":
             return ResultDTO.forbidden("Only ADMIN can create users")
 
-    perfil_nome = req.perfil or ("ADMIN" if total == 0 else "ATENDENTE")
+    perfil_nome = (req.perfil or "").upper() or ("ADMIN" if total == 0 else "ATENDENTE")
     perfil = _perfil_by_nome(perfil_nome)
     if not perfil:
         return ResultDTO.bad_request(f"Unknown perfil: {perfil_nome}")
@@ -64,6 +69,7 @@ def register(req: RegisterRequestDTO) -> ResultDTO:
 
 
 def login(req: LoginRequestDTO) -> ResultDTO:
+    req.email = _normalizar_email(req.email)
     if not req.email or not req.password:
         return ResultDTO.bad_request("email and password are required")
 

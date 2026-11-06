@@ -17,7 +17,7 @@ def obter(chave: str) -> ResultDTO:
     return ResultDTO.ok(config_bot_dict(item))
 
 
-def upsert(chave: str, dados: dict, autor_id: str) -> ResultDTO:
+def upsert(chave: str, dados: dict, autor_id: int) -> ResultDTO:
     valor = dados.get("valor")
     if valor is None:
         return ResultDTO.bad_request("valor is required")
@@ -34,7 +34,7 @@ def upsert(chave: str, dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.ok(config_bot_dict(item))
 
 
-def remover(chave: str, autor_id: str) -> ResultDTO:
+def remover(chave: str, autor_id: int) -> ResultDTO:
     item = db.session.get(ConfigBot, chave)
     if not item:
         return ResultDTO.not_found("Config not found")

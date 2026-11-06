@@ -219,3 +219,8 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# SQLite: arquivos temporários do modo WAL e backups locais
+*.db-wal
+*.db-shm
+backups/

@@ -11,14 +11,14 @@ def listar() -> ResultDTO:
     return ResultDTO.ok([serialize(u) for u in usuarios])
 
 
-def obter(usuario_id: str) -> ResultDTO:
+def obter(usuario_id: int) -> ResultDTO:
     usuario = db.session.get(Usuario, usuario_id)
     if not usuario:
         return ResultDTO.not_found("Usuario not found")
     return ResultDTO.ok(serialize(usuario))
 
 
-def criar(dados: dict, autor_id: str) -> ResultDTO:
+def criar(dados: dict, autor_id: int) -> ResultDTO:
     email = (dados.get("email") or "").strip().lower()
     senha = (dados.get("password") or "").strip()
     if not email or not senha:
@@ -46,7 +46,7 @@ def criar(dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.created(serialize(usuario))
 
 
-def atualizar(usuario_id: str, dados: dict, autor_id: str) -> ResultDTO:
+def atualizar(usuario_id: int, dados: dict, autor_id: int) -> ResultDTO:
     usuario = db.session.get(Usuario, usuario_id)
     if not usuario:
         return ResultDTO.not_found("Usuario not found")
@@ -68,7 +68,7 @@ def atualizar(usuario_id: str, dados: dict, autor_id: str) -> ResultDTO:
     return ResultDTO.ok(serialize(usuario))
 
 
-def desativar(usuario_id: str, autor_id: str) -> ResultDTO:
+def desativar(usuario_id: int, autor_id: int) -> ResultDTO:
     usuario = db.session.get(Usuario, usuario_id)
     if not usuario:
         return ResultDTO.not_found("Usuario not found")

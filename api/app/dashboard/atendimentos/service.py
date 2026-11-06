@@ -52,6 +52,8 @@ def atualizar(atendimento_id: int, dados: dict, usuario) -> ResultDTO:
             atendimento.usuario_atendente_id = usuario.id
         if status == "FECHADO":
             atendimento.closed_at = datetime.now(timezone.utc)
+        else:
+            atendimento.closed_at = None
 
     if dados.get("assumir") and not atendimento.usuario_atendente_id:
         atendimento.usuario_atendente_id = usuario.id

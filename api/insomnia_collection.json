@@ -26,7 +26,8 @@
         "no_id": "",
         "atendimento_id": "",
         "chave": "boas_vindas",
-        "wa_id": "553199456489"
+        "wa_id": "553199456489",
+        "chave_teste": "exemplo_teste"
       }
     },
     {
@@ -141,7 +142,9 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "none" },
+      "authentication": {
+        "type": "none"
+      },
       "metaSortKey": 1
     },
     {
@@ -159,8 +162,15 @@
         "text": "{\n  \"email\": \"admin@ufv.br\",\n  \"password\": \"secret\",\n  \"name\": \"Admin\",\n  \"perfil\": \"ADMIN\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "none" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "none"
+      },
       "metaSortKey": 10
     },
     {
@@ -178,8 +188,15 @@
         "text": "{\n  \"email\": \"admin@ufv.br\",\n  \"password\": \"secret\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "none" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "none"
+      },
       "metaSortKey": 11
     },
     {
@@ -195,7 +212,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 12
     },
     {
@@ -211,7 +231,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 20
     },
     {
@@ -229,8 +252,16 @@
         "text": "{\n  \"email\": \"atendente@ufv.br\",\n  \"password\": \"secret\",\n  \"name\": \"Atendente\",\n  \"perfil\": \"ATENDENTE\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 21
     },
     {
@@ -246,7 +277,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 22
     },
     {
@@ -257,15 +291,23 @@
       "created": 0,
       "url": "{{ _.base_url }}/api/dashboard/usuarios/{{ _.usuario_id }}",
       "name": "Atualizar usuario",
-      "description": "ADMIN. Campos: name, ativo, password, perfil.",
+      "description": "usuario_id é inteiro.",
       "method": "PATCH",
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"name\": \"Novo nome\",\n  \"ativo\": true,\n  \"perfil\": \"ATENDENTE\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 23
     },
     {
@@ -281,7 +323,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 24
     },
     {
@@ -297,7 +342,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 30
     },
     {
@@ -315,8 +363,16 @@
         "text": "{\n  \"nome\": \"Multas\",\n  \"descricao\": \"Assuntos sobre multas\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 31
     },
     {
@@ -332,7 +388,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 32
     },
     {
@@ -350,8 +409,16 @@
         "text": "{\n  \"nome\": \"Multas e pendencias\",\n  \"descricao\": \"Atualizado\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 33
     },
     {
@@ -367,7 +434,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 34
     },
     {
@@ -382,11 +452,22 @@
       "method": "GET",
       "body": {},
       "parameters": [
-        { "name": "categoria_id", "value": "{{ _.categoria_id }}", "disabled": true },
-        { "name": "ativo", "value": "true", "disabled": true }
+        {
+          "name": "categoria_id",
+          "value": "{{ _.categoria_id }}",
+          "disabled": true
+        },
+        {
+          "name": "ativo",
+          "value": "true",
+          "disabled": true
+        }
       ],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 40
     },
     {
@@ -397,15 +478,23 @@
       "created": 0,
       "url": "{{ _.base_url }}/api/dashboard/conteudos/",
       "name": "Criar conteudo",
-      "description": "ADMIN. Obrigatorios: categoria_id, titulo, texto.",
+      "description": "O título precisa ser único: os 11 títulos do seed já existem no chatbot.db.",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"categoria_id\": 1,\n  \"titulo\": \"Valores das multas\",\n  \"texto\": \"O valor da multa e de R$ [PREENCHER] por dia.\",\n  \"fonte\": \"Regimento da biblioteca\"\n}"
+        "text": "{\n  \"categoria_id\": 1,\n  \"titulo\": \"Exemplo de resposta\",\n  \"texto\": \"Texto da nova resposta.\",\n  \"fonte\": \"Regimento da biblioteca\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 41
     },
     {
@@ -421,7 +510,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 42
     },
     {
@@ -439,8 +531,16 @@
         "text": "{\n  \"texto\": \"Texto atualizado da resposta.\",\n  \"fonte\": \"Regimento 2026\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 43
     },
     {
@@ -456,7 +556,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 44
     },
     {
@@ -471,12 +574,27 @@
       "method": "GET",
       "body": {},
       "parameters": [
-        { "name": "parent_id", "value": "", "disabled": true },
-        { "name": "raiz", "value": "true", "disabled": true },
-        { "name": "ativo", "value": "true", "disabled": true }
+        {
+          "name": "parent_id",
+          "value": "",
+          "disabled": true
+        },
+        {
+          "name": "raiz",
+          "value": "true",
+          "disabled": true
+        },
+        {
+          "name": "ativo",
+          "value": "true",
+          "disabled": true
+        }
       ],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 50
     },
     {
@@ -487,15 +605,23 @@
       "created": 0,
       "url": "{{ _.base_url }}/api/dashboard/fluxo/",
       "name": "Criar no",
-      "description": "ADMIN. tipo: MENU, RESPOSTA (exige conteudo_id) ou ATENDENTE. titulo <= 24.",
+      "description": "parent_id precisa ser um nó MENU (1 = Multas). Máximo de 10 opções no menu inicial e 9 em submenus; sem ciclos; RESPOSTA exige conteudo_id.",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"titulo\": \"Valores das multas\",\n  \"tipo\": \"RESPOSTA\",\n  \"conteudo_id\": 1,\n  \"parent_id\": null,\n  \"ordem\": 1\n}"
+        "text": "{\n  \"titulo\": \"Nova opção\",\n  \"tipo\": \"RESPOSTA\",\n  \"conteudo_id\": {{ _.conteudo_id }},\n  \"parent_id\": 1,\n  \"ordem\": 4\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 51
     },
     {
@@ -511,7 +637,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 52
     },
     {
@@ -529,8 +658,16 @@
         "text": "{\n  \"titulo\": \"Como pagar a multa\",\n  \"ordem\": 2\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 53
     },
     {
@@ -546,7 +683,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 54
     },
     {
@@ -562,7 +702,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 60
     },
     {
@@ -578,7 +721,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 61
     },
     {
@@ -589,15 +735,23 @@
       "created": 0,
       "url": "{{ _.base_url }}/api/dashboard/config/{{ _.chave }}",
       "name": "Definir config (upsert)",
-      "description": "ADMIN. Cria ou atualiza a chave. Vale para boas_vindas, fallback, menu_botao, atendente_msg e as de feedback.",
+      "description": "Upsert. Cuidado: com chave=boas_vindas isto altera a mensagem real do bot.",
       "method": "PUT",
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"valor\": \"Bem-vindo! Escolha uma opcao:\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 62
     },
     {
@@ -606,14 +760,17 @@
       "parentId": "fld_config",
       "modified": 0,
       "created": 0,
-      "url": "{{ _.base_url }}/api/dashboard/config/{{ _.chave }}",
+      "url": "{{ _.base_url }}/api/dashboard/config/{{ _.chave_teste }}",
       "name": "Remover config",
-      "description": "ADMIN.",
+      "description": "Usa chave_teste para não apagar um texto do bot por engano (ex.: boas_vindas).",
       "method": "DELETE",
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 63
     },
     {
@@ -629,7 +786,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 70
     },
     {
@@ -645,7 +805,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 71
     },
     {
@@ -663,8 +826,16 @@
         "text": "{\n  \"status\": \"EM_ATENDIMENTO\",\n  \"assumir\": true\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 72
     },
     {
@@ -680,7 +851,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 73
     },
     {
@@ -698,8 +872,16 @@
         "text": "{\n  \"texto\": \"Ola, vou te ajudar com a multa.\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 74
     },
     {
@@ -714,10 +896,17 @@
       "method": "GET",
       "body": {},
       "parameters": [
-        { "name": "no_fluxo_id", "value": "{{ _.no_id }}", "disabled": true }
+        {
+          "name": "no_fluxo_id",
+          "value": "{{ _.no_id }}",
+          "disabled": true
+        }
       ],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 80
     },
     {
@@ -728,15 +917,23 @@
       "created": 0,
       "url": "{{ _.base_url }}/api/dashboard/feedback/",
       "name": "Criar feedback",
-      "description": "Autenticado. Obrigatorio: no_fluxo_id.",
+      "description": "util é obrigatório (true/false). 10 = nó 'Valores das multas'.",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
-        "text": "{\n  \"no_fluxo_id\": 1,\n  \"util\": true,\n  \"comentario\": \"Ajudou bastante\"\n}"
+        "text": "{\n  \"no_fluxo_id\": 10,\n  \"util\": true,\n  \"comentario\": \"Ajudou bastante\"\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 81
     },
     {
@@ -752,7 +949,10 @@
       "body": {},
       "parameters": [],
       "headers": [],
-      "authentication": { "type": "bearer", "token": "{{ _.token }}" },
+      "authentication": {
+        "type": "bearer",
+        "token": "{{ _.token }}"
+      },
       "metaSortKey": 90
     },
     {
@@ -767,12 +967,26 @@
       "method": "GET",
       "body": {},
       "parameters": [
-        { "name": "hub.mode", "value": "subscribe", "disabled": false },
-        { "name": "hub.verify_token", "value": "bbt_verify", "disabled": false },
-        { "name": "hub.challenge", "value": "12345", "disabled": false }
+        {
+          "name": "hub.mode",
+          "value": "subscribe",
+          "disabled": false
+        },
+        {
+          "name": "hub.verify_token",
+          "value": "bbt_verify",
+          "disabled": false
+        },
+        {
+          "name": "hub.challenge",
+          "value": "12345",
+          "disabled": false
+        }
       ],
       "headers": [],
-      "authentication": { "type": "none" },
+      "authentication": {
+        "type": "none"
+      },
       "metaSortKey": 100
     },
     {
@@ -783,15 +997,22 @@
       "created": 0,
       "url": "{{ _.base_url }}/api/whatsapp/webhook/",
       "name": "Receber mensagem (simulada)",
-      "description": "Simula clique em botao do no de id 1. Se WHATSAPP_APP_SECRET estiver setado, e preciso X-Hub-Signature-256.",
+      "description": "Sem o cabeçalho X-Hub-Signature-256 o servidor recusa (503 sem WHATSAPP_APP_SECRET, 401 com ele). Para testar pelo Insomnia, suba o servidor sem segredo e com WHATSAPP_REQUIRE_SIGNATURE=false. Ids de botão: id do nó, 'inicio' (menu inicial) ou 'feedback:1:<no>'.",
       "method": "POST",
       "body": {
         "mimeType": "application/json",
         "text": "{\n  \"entry\": [\n    {\n      \"changes\": [\n        {\n          \"value\": {\n            \"messages\": [\n              {\n                \"from\": \"553199456489\",\n                \"type\": \"interactive\",\n                \"interactive\": {\n                  \"type\": \"button_reply\",\n                  \"button_reply\": { \"id\": \"1\" }\n                }\n              }\n            ]\n          }\n        }\n      ]\n    }\n  ]\n}"
       },
       "parameters": [],
-      "headers": [{ "name": "Content-Type", "value": "application/json" }],
-      "authentication": { "type": "none" },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "authentication": {
+        "type": "none"
+      },
       "metaSortKey": 101
     }
   ]
