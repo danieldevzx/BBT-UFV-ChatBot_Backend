@@ -41,11 +41,13 @@ def create_app(config=None):
     from .core.database.cli import db_cli
     from .core.utils.health import health_bp
     from .dashboard import dashboard_bp
+    from .painel import painel_bp
     from .whatsapp import whatsapp_bp
 
     app.cli.add_command(db_cli)
     app.register_blueprint(health_bp, url_prefix="/api")
     app.register_blueprint(dashboard_bp, url_prefix="/api/dashboard")
     app.register_blueprint(whatsapp_bp, url_prefix="/api/whatsapp")
+    app.register_blueprint(painel_bp)
 
     return app

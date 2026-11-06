@@ -93,6 +93,8 @@ class Testador:
         print(f"\n== Saúde e proteção ({self.base})")
         R("GET", "/api/health", 200, checar=lambda c: c.get("status") == "ok" or f"status={c.get('status')}")
         R("GET", "/api/dashboard/categorias/", 401, nome="sem token")
+        R("GET", "/", 200, nome="painel web", checar=lambda c: "Gestor de Fluxos" in str(c) or "página do painel não veio")
+        R("GET", "/logo.png", 200, nome="imagem do painel")
 
         print("\n== Auth")
         st, _ = R("POST", "/api/dashboard/auth/register", (201, 403), nome="1º ADMIN (403 = já existe usuário)",

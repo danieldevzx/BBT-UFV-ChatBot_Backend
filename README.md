@@ -10,11 +10,14 @@ api/
 │   ├── core/           # infra compartilhada (auth, database, models, dtos, utils, audit)
 │   ├── bot/            # núcleo do bot (árvore de decisão: fluxo + responder)
 │   ├── whatsapp/       # canal WhatsApp (webhook + API client)
-│   └── dashboard/      # painel das bibliotecárias (auth + CRUDs)
+│   ├── dashboard/      # API do painel das bibliotecárias (auth + CRUDs)
+│   └── painel.py       # serve o painel web (frontend/) em /
+├── frontend/           # painel web: gestor-fluxos.html + imagens
 ├── db/
 │   ├── chatbot.db              # banco SQLite pronto e populado (schema v1)
 │   ├── sqlite_schema.sql       # script-fonte do banco (versão 0 + seed)
 │   └── migrations/NNN_*.sql    # ajustes aplicados por cima (PRAGMA user_version)
+├── scripts/            # testar_endpoints.py (API) e testar_painel.js (painel)
 ├── tests/              # testes (unittest), rodam contra cópias do chatbot.db
 ├── insomnia_collection.json     # collection para importar no Insomnia
 ├── .env                # configuração local
@@ -27,6 +30,7 @@ api/
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
+| GET | `/` | Painel web (gestor de fluxos) |
 | GET | `/api/health` | Health check |
 | GET | `/api/whatsapp/webhook/` | Verificação do webhook (Meta) |
 | POST | `/api/whatsapp/webhook/` | Recebe mensagens do WhatsApp |
@@ -61,6 +65,8 @@ cp db/chatbot.db /tmp/teste.db                       # sempre numa cópia do ban
 DB_PATH=/tmp/teste.db WHATSAPP_APP_SECRET=segredo-teste flask --app run.py run --port 5000 &
 python scripts/testar_endpoints.py --app-secret segredo-teste
 ```
+
+O painel tem um roteiro parecido, que abre a página num navegador simulado e a usa de ponta a ponta: `node scripts/testar_painel.js http://localhost:5000` (precisa de Node 18+ e `npm install jsdom@24`; rode num banco sem usuários e com `WHATSAPP_REQUIRE_SIGNATURE=false`).
 
 Se o banco ainda não tem usuários, o script cria o primeiro ADMIN com `--admin-email`/`--admin-password` (padrão `admin@ufv.br`/`senha-admin-teste`); se já tem, passe as credenciais de um ADMIN existente. Ele cria registros de teste e os desativa no fim, por isso recusa URLs que não sejam localhost (use `--force` só em homologação). Sai com código 1 se alguma verificação falhar, então também serve em CI.
 
@@ -101,7 +107,20 @@ flask --app run.py db upgrade     # aplica migrações pendentes no db/chatbot.d
 flask --app run.py run --debug
 ```
 
-Depois crie o primeiro ADMIN com `POST /api/dashboard/auth/register` (o primeiro usuário do banco vira ADMIN automaticamente).
+Abra **http://localhost:5000/** no navegador. No primeiro acesso, use "Primeiro acesso? Criar o administrador" (o primeiro usuário do banco vira ADMIN automaticamente).
+
+## Painel web
+
+O painel (`frontend/gestor-fluxos.html`) é servido pelo próprio Flask em `/`, no mesmo endereço da API. Por isso não precisa de servidor separado nem de CORS: a página chama `/api/dashboard/...` pelo caminho relativo, em qualquer porta ou domínio (inclusive atrás de um proxy HTTPS). Não abra o arquivo direto do disco (duplo clique): sem o Flask servindo, a página não encontra a API.
+
+| No painel | Fora do painel (pela API / Insomnia) |
+|---|---|
+| Fluxos (menus) e suas opções: criar, editar, reordenar, desativar e reativar | Atendimentos (fila, mensagens, assumir, fechar) |
+| Texto de cada resposta | Usuários (criar atendentes, trocar senha, desativar) |
+| Mensagem de boas-vindas | Demais textos fixos (`fallback`, `atendente_msg`...), feedback e logs |
+| Criar o primeiro ADMIN | |
+
+O ADMIN edita; o ATENDENTE entra em modo só leitura. As regras da árvore são as do backend: quando uma ação é recusada, a mensagem aparece no próprio diálogo. Para mexer na página, edite `frontend/gestor-fluxos.html`; as imagens permitidas ficam listadas em `app/painel.py`.
 
 Com Docker: `docker compose up -d --build`. Na primeira subida o container copia o `db/chatbot.db` para o volume `chatbot-data` e, a cada subida, roda `flask db upgrade` antes do gunicorn.
 

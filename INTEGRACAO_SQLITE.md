@@ -40,6 +40,12 @@ banco real.
 - `requirements.txt` sem `psycopg2` e `flask-migrate`, com `gunicorn`.
 - README atualizado.
 
+**Painel web (front) — integrado ao mesmo produto**
+- `frontend/gestor-fluxos.html` + imagens, servidos pelo Flask em `/` (`app/painel.py`). Um único servidor, sem CORS; só os arquivos do painel são expostos.
+- Ajustes mínimos na página: endereço da API relativo (antes só funcionava na porta 5000 e quebraria atrás de proxy), limites do bot atual (sem aviso de "título cortado", 10 opções no Menu Principal e 9 nos submenus), aviso antes de mudar o tipo de um fluxo com opções, e tradução das mensagens de validação do backend.
+- Testado de ponta a ponta com `scripts/testar_painel.js` (24 verificações).
+- O painel cobre fluxos, respostas e boas-vindas. Atendimentos, usuários e os demais textos fixos continuam pela API.
+
 ## O que continua pendente (fora do código)
 - Preencher os textos com `[PREENCHER]` (os 11 conteúdos) e revisar `config_bot`.
 - Criar o primeiro ADMIN em produção (`POST /api/dashboard/auth/register`).
